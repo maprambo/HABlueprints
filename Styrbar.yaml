@@ -20,6 +20,12 @@ blueprint:
         target:
           entity:
             domain: light
+    main_light:
+      name: Main Light
+      description: Main light entity used to check whether light is on
+      selector:
+        entity:
+          domain: light
     button_left:
       name: Left button
       description: Action to run on left button press short
@@ -76,7 +82,7 @@ action:
         - condition: or
           conditions:
           - condition: state
-            entity_id: !input 'target_light'
+            entity_id: !input 'main_light'
             state: 'on'
           - condition: '{{ force_default }}'
         sequence: !input 'button_up'

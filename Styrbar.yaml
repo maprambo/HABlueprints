@@ -72,8 +72,13 @@ action:
   - conditions: '{{ command == ''on'' }}'
     sequence:
     - choose:
-      - conditions: '{{ force_default }}'
-        sequence: !input 'button_left'
+      - condition: or
+        conditions:
+        - condition: state
+          entity_id: !input 'target_light'
+          state: 'on'
+        - condition: '{{ force_default }}'
+        sequence: !input 'button_up'
       default:
       - service: light.turn_on
         target: !input 'target_light'

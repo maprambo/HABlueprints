@@ -72,12 +72,13 @@ action:
   - conditions: '{{ command == ''on'' }}'
     sequence:
     - choose:
-      - condition: or
-        conditions:
-        - condition: state
-          entity_id: !input 'target_light'
-          state: 'on'
-        - condition: '{{ force_default }}'
+      - conditions:
+        - condition: or
+          conditions:
+          - condition: state
+            entity_id: !input 'target_light'
+            state: 'on'
+          - condition: '{{ force_default }}'
         sequence: !input 'button_up'
       default:
       - service: light.turn_on
@@ -95,7 +96,7 @@ action:
         sequence:
         - service: light.turn_on
           data:
-            brightness_step_pct: -30
+            brightness_step_pct: -5
             transition: 1
           target: !input 'target_light'
         - delay: '1'
@@ -106,7 +107,7 @@ action:
         sequence:
         - service: light.turn_on
           data:
-            brightness_step_pct: 30
+            brightness_step_pct: 5
             transition: 1
           target: !input 'target_light'
         - delay: '1'

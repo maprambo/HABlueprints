@@ -46,20 +46,15 @@ blueprint:
       default: []
       selector:
         action: {}
-    brightness:
-      name: Brightness
-      description: The brightness you want your lights to be when turning them on
-      default: 100
+    button_up:
+      name: On button
+      description: Action to run on up button press short
+      default: []
       selector:
-        number:
-          min: 0.0
-          max: 100.0
-          mode: slider
-          step: 1.0
-          unit_of_measurement: '%'
-    force_brightness:
-      name: Force Brightness
-      description: Force the above set brightness when turning on the lamps?
+        action: {}
+    force_default:
+      name: Force Default Action
+      description: Force the above set action when turning on?
       default: false
       selector:
         boolean: {}
@@ -77,13 +72,8 @@ action:
   - conditions: '{{ command == ''on'' }}'
     sequence:
     - choose:
-      - conditions: '{{ force_brightness }}'
-        sequence:
-        - service: light.turn_on
-          target: !input 'target_light'
-          data:
-            transition: 1
-            brightness_pct: !input 'brightness'
+      - conditions: '{{ force_default }}'
+        sequence: !input 'button_left'
       default:
       - service: light.turn_on
         target: !input 'target_light'

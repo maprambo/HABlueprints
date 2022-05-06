@@ -84,7 +84,8 @@ action:
           - condition: state
             entity_id: !input 'main_light'
             state: 'on'
-          - condition: '{{ force_default }}'
+          - condition: and
+            conditions: '{{ force_default }}'
         sequence: !input 'button_up'
       default:
       - service: light.turn_on

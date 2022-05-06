@@ -1,7 +1,7 @@
 blueprint:
-  name: Ikea Styrbar Remote
+  name: Ikea Styrbar Dimmer and Actions
   description: Control your lights with the IKEA STYRBAR remote. You can also set
-    actions for the left and right button.
+    actions for the left and right button as well as for the up/dim up button.
   domain: automation
   input:
     remote:

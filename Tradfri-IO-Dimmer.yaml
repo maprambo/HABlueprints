@@ -62,7 +62,7 @@ action:
             state: 'on'
           - condition: and
             conditions: '{{ force_default }}'
-        sequence: !input 'default_action'
+          sequence: !input 'default_action'
       default:
       - service: light.turn_on
         target: !input 'light'

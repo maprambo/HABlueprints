@@ -1,10 +1,6 @@
 blueprint:
   name: Ikea I/O Dimmer
-  description: |
-	"Control your light(s) with IKEA Tradfri on/off switch
-
-	Select the Tradfri remote and your lights.
-	You can turn the lights On / Off, or hold the buttons to dim the lights"
+  description: "Control your light(s) with IKEA Tradfri on/off switch. The main light entity is used to determine wheter the light is turned on already."
   domain: automation
   input:
 	remote:

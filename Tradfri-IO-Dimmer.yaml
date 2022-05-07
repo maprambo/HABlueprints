@@ -1,0 +1,122 @@
+blueprint:
+  name: Ikea I/O Dimmer
+  description: |
+	"Control your light(s) with IKEA Tradfri on/off switch
+
+	Select the Tradfri remote and your lights.
+	You can turn the lights On / Off, or hold the buttons to dim the lights"
+  domain: automation
+  input:
+	remote:
+	  name: Remote
+	  description: The remote that will control the lights
+	  selector:
+		device:
+		  integration: zha
+		  manufacturer: 'IKEA of Sweden'
+		  model: 'TRADFRI on/off switch'
+	light:
+	  name: Light
+	  description: The lights that will be controlled
+	  selector:
+		target:
+		  entity:
+			domain: light
+	main_light:
+	  name: Main Light
+	  description: Main light entity used to check whether light is on
+	  selector:
+		entity:
+		  domain: light
+	default_action:
+	  name: On button
+	  description: Action to run on on button press short
+	  default: []
+	  selector:
+		action: {}
+	force_default:
+	  name: Force Default Action
+	  description: Force the above set action when turning on?
+	  default: false
+	  selector:
+		boolean: {}
+mode: restart
+trigger:
+- platform: event
+  event_type: zha_event
+  event_data:
+	device_id: !input 'remote'
+action:
+- variables:
+	command: "{{ trigger.event.data.command }}"
+	cluster_id: "{{ trigger.event.data.cluster_id }}"
+	endpoint_id: "{{ trigger.event.data.endpoint_id }}"
+- choose:
+  - conditions:
+	- "{{ command == 'on' }}"
+	- "{{ cluster_id == 6 }}"
+	- "{{ endpoint_id == 1 }}"
+	sequence:
+	- choose:
+	  - conditions:
+		- condition: or
+		  conditions:
+		  - condition: state
+			entity_id: !input 'main_light'
+			state: 'on'
+		  - condition: and
+			conditions: '{{ force_default }}'
+		sequence: !input 'default_action'
+	  default:
+	  - service: light.turn_on
+		target: !input 'light'
+		data:
+		  transition: 1
+  - conditions:
+	- "{{ command == 'off' }}"
+	- "{{ cluster_id == 6 }}"
+	- "{{ endpoint_id == 1 }}"
+	sequence:
+	- service: light.turn_off
+	  target: !input 'light'
+	  data:
+		transition: 1
+  - conditions:
+	- "{{ command == 'move_with_on_off' }}"
+	- "{{ cluster_id == 8 }}"
+	- "{{ endpoint_id == 1 }}"
+	sequence:
+	  repeat:
+		while:
+		- condition: template
+		  value_template: "{{ repeat.index < 10 }}"
+		sequence:
+		- service: light.turn_on
+		  target: !input 'light'
+		  data:
+			transition: 1
+			brightness_step_pct: 10
+		- delay: 1
+  - conditions:
+	- "{{ command == 'move' }}"
+	- "{{ cluster_id == 8 }}"
+	- "{{ endpoint_id == 1 }}"
+	sequence:
+	  repeat:
+		while:
+		- condition: template
+		  value_template: "{{ repeat.index < 10 }}"
+		sequence:
+		- service: light.turn_on
+		  target: !input 'light'
+		  data:
+			transition: 1
+			brightness_step_pct: -10
+		- delay: 1
+  - conditions:
+	- "{{ command == 'stop' }}"
+	- "{{ cluster_id == 8 }}"
+	- "{{ endpoint_id == 1 }}"
+	sequence:
+	- service: light.turn_on
+	  target: !input 'light'

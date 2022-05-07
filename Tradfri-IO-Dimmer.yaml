@@ -47,6 +47,7 @@ action:
     command: "{{ trigger.event.data.command }}"
     cluster_id: "{{ trigger.event.data.cluster_id }}"
     endpoint_id: "{{ trigger.event.data.endpoint_id }}"
+    force_default: !input 'force_default'
 - choose:
   - conditions:
     - "{{ command == 'on' }}"
@@ -60,7 +61,8 @@ action:
           - condition: state
             entity_id: !input 'main_light'
             state: 'on'
-          - "{{ force_default == 'on' }}"
+          - condition: and
+            conditions: '{{ force_default }}'
         sequence: !input 'default_action'
       default:
       - service: light.turn_on

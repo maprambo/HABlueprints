@@ -152,13 +152,13 @@ action:
                   - service: input_boolean.turn_off
                     target:
                       entity_id: !input automation_active
-                - condition: state
-                  entity_id: !input main_light
-                  to: {{ !states(motion_sensor) }}
-                  sequence:
-                    - service: input_boolean.turn_on
-                      target:
-                        entity_id: !input automation_active
+              - conditions: state
+                entity_id: !input main_light
+                to: {{ !states(motion_sensor) }}
+                sequence:
+                  - service: input_boolean.turn_on
+                    target:
+                      entity_id: !input automation_active
         - condition: and
           conditions:
             - {{ trigger.id == 'manual_override_reset' }}

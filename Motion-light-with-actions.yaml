@@ -64,39 +64,39 @@ trigger:
   - id: "motion_detected"
     platform: state
     entity_id: !input motion_sensor
-    from: off
-    to: on
+    from: "off"
+    to: "on"
   - id: "no_motion_detected"
     platform: state
     entity_id: !input motion_sensor
-    from: on
-    to: off
+    from: "on"
+    to: "off"
     for: !input duration_turn_off_lights
   - id: "darkness_on"
     platform: state
     entity_id: !input darkness
-    from: off
-    to: on
+    from: "off"
+    to: "on"
   - id: "darkness_off"
     platform: state
     entity_id: !input darkness
-    from: on
-    to: off
+    from: "on"
+    to: "off"
   - id: "light_turned_off"
     platform: state
     entity_id: !input main_light
-    from: on
-    to: off
+    from: "on"
+    to: "off"
   - id: "light_turned_on"
     platform: state
     entity_id: !input main_light
-    from: off
-    to: on
+    from: "off"
+    to: "on"
   - id: "manual_override_reset"
     platform: state
     entity_id: !input automation_active
-    from: on
-    to: off
+    from: "on"
+    to: "off"
     for: !input duration_turn_on_aumation_active
 variables:
     boolean_turn_off_lights: !input boolean_turn_off_lights
@@ -111,13 +111,13 @@ action:
         - "{{ trigger.id == 'darkness_on' }}"
       - condition: state
         entity_id: !input darkness
-        state: on
+        state: "on"
       - condition: state
         entity_id: !input main_light
-        state: off
+        state: "off"
       - condition: state
         entity_id: !input automation_active
-        state: on
+        state: "on"
       sequence: !input sequence_turn_on_light
     - conditions:
       - condition: or

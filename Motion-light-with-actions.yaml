@@ -102,6 +102,7 @@ variables:
     boolean_turn_off_lights: !input boolean_turn_off_lights
     boolean_turn_on_automation_active_time: !input boolean_turn_on_automation_active_time
     motion_sensor: !input motion_sensor
+    main_light: !input main_light
 action:
   - choose:
     - conditions:
@@ -141,19 +142,15 @@ action:
       sequence:
       - choose:
         - conditions:
-          - condition: not
-            conditions:
-            - condition: state
-              entity_id: !input main_light
-              state: "{{ states(motion_sensor) }}"
+          - condition: template
+            value_template: "{{ states(motion_sensor) != states(main_light) }}"
           sequence:
           - service: input_boolean.turn_off
             target:
               entity_id: !input automation_active
         - conditions:
-          - condition: state
-            entity_id: !input main_light
-            state: "{{ states(motion_sensor) }}"
+          - condition: template
+            value_template: "{{ states(motion_sensor) == states(main_light) }}"
           sequence:
           - service: input_boolean.turn_on
             target:

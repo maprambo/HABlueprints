@@ -145,7 +145,7 @@ action:
             conditions:
             - condition: state
               entity_id: !input main_light
-              state: "{{ !states(motion_sensor) }}"
+              state: "{{ states(motion_sensor) }}"
           sequence:
           - service: input_boolean.turn_off
             target:
@@ -153,7 +153,7 @@ action:
         - conditions:
           - condition: state
             entity_id: !input main_light
-            state: "{{ !states(motion_sensor) }}"
+            state: "{{ states(motion_sensor) }}"
           sequence:
           - service: input_boolean.turn_on
             target:

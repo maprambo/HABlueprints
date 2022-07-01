@@ -152,9 +152,10 @@ action:
                   - service: input_boolean.turn_off
                     target:
                       entity_id: !input automation_active
-              - conditions: state
-                entity_id: !input main_light
-                to: {{ !states(motion_sensor) }}
+              - conditions:
+                - condition: state
+                  entity_id: !input main_light
+                  to: {{ !states(motion_sensor) }}
                 sequence:
                   - service: input_boolean.turn_on
                     target:

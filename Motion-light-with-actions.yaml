@@ -139,25 +139,25 @@ action:
           - "{{ trigger.id == 'light_turned_on' }}"
           - "{{ trigger.id == 'light_turned_off' }}"
       sequence:
-        - choose:
-          - conditions:
-            - condition: not
-              conditions:
-              - condition: state
-                entity_id: !input main_light
-                to: "{{ !states(motion_sensor) }}"
-            sequence:
-            - service: input_boolean.turn_off
-              target:
-                entity_id: !input automation_active
-          - conditions:
+      - choose:
+        - conditions:
+          - condition: not
+            conditions:
             - condition: state
               entity_id: !input main_light
               to: "{{ !states(motion_sensor) }}"
-            sequence:
-            - service: input_boolean.turn_on
-              target:
-                entity_id: !input automation_active
+          sequence:
+          - service: input_boolean.turn_off
+            target:
+              entity_id: !input automation_active
+        - conditions:
+          - condition: state
+            entity_id: !input main_light
+            to: "{{ !states(motion_sensor) }}"
+          sequence:
+          - service: input_boolean.turn_on
+            target:
+              entity_id: !input automation_active
     - conditions:
       - "{{ trigger.id == 'manual_override_reset' }}"
       - "{{ boolean_turn_on_automation_active_time }}"

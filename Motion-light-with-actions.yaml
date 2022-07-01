@@ -58,7 +58,7 @@ blueprint:
       name: "Action to turn on light"
       description: "Activate a scene, a script or check for more conditions"
       selector:
-        sequence:
+        action:
 mode: restart
 trigger:
   - id: "motion_detected"

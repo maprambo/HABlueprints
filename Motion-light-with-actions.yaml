@@ -109,8 +109,8 @@ action:
           conditions:
             - condition: or
               conditions:
-              - {{ trigger.id == 'motion_detected' }}
-              - {{ trigger.id == 'darkness_on' }}
+              - "{{ trigger.id == 'motion_detected' }}"
+              - "{{ trigger.id == 'darkness_on' }}"
             - condition: state
               entity_id: !input darkness
               state: on
@@ -125,12 +125,12 @@ action:
           conditions:
             - condition: or
               conditions:
-                - {{ trigger.id == 'no_motion_detected' }}
-                - {{ trigger.id == 'darkness_off' }}
+                - "{{ trigger.id == 'no_motion_detected' }}"
+                - "{{ trigger.id == 'darkness_off' }}"
             - condition: state
               entity_id: !input automation_active
               state: on
-            - {{ boolean_turn_off_lights }}
+            - "{{ boolean_turn_off_lights }}"
           sequence:
             - service: light.turn_off
               target: !input target_lights
@@ -138,8 +138,8 @@ action:
                 transition: 10
         - condition: or
           conditions:
-          - {{ trigger.id == 'light_turned_on' }}
-          - {{ trigger.id == 'light_turned_off' }}
+          - "{{ trigger.id == 'light_turned_on' }}"
+          - "{{ trigger.id == 'light_turned_off' }}"
           sequence:
             - choose:
               - conditions:
@@ -147,7 +147,7 @@ action:
                   conditions:
                   - condition: state
                     entity_id: !input main_light
-                    to: {{ !states(motion_sensor) }}
+                    to: "{{ !states(motion_sensor) }}"
                 sequence:
                   - service: input_boolean.turn_off
                     target:
@@ -155,15 +155,15 @@ action:
               - conditions:
                 - condition: state
                   entity_id: !input main_light
-                  to: {{ !states(motion_sensor) }}
+                  to: "{{ !states(motion_sensor) }}"
                 sequence:
                   - service: input_boolean.turn_on
                     target:
                       entity_id: !input automation_active
         - condition: and
           conditions:
-            - {{ trigger.id == 'manual_override_reset' }}
-            - {{ boolean_turn_on_automation_active_time }}
+            - "{{ trigger.id == 'manual_override_reset' }}"
+            - "{{ boolean_turn_on_automation_active_time }}"
           sequence:
             - service: input_boolean.turn_on
               target:

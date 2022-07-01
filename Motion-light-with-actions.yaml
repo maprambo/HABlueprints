@@ -1,0 +1,169 @@
+blueprint:
+	name: "Sensor-activated light with actions"
+	domain: automation
+	description: "Runs a series of action for a light based on a motion sensor, depending on environmental lighting and including a manual override"
+	input:
+  	  motion_sensor:
+		  name: "Motion sensor"
+		  description: "A binary sensor that detects motion"
+		  selector:
+  		    entity:
+    		    domain: binary_sensor
+    		    device_class: motion
+    automation_active:
+      name: "Manual override / Automation active"
+      description: "An input boolean to turn the motion sensoring on or off"
+      selector:
+        entity:
+          domain: input_boolean
+    darkness:
+      name: "Darkness boolean"
+      description: "A binary sensor to indicate darkness. Use a threshold helper if necessary."
+      selector:
+        entity:
+          domain: input_boolean
+    main_light:
+      name: "Main light"
+      description: "The main light entity to check state on"
+      selector:
+        entity:
+          domain: light
+    target_lights:
+      name: "Target lights"
+      description: "Lights to turn on/off"
+      selector:
+        target:
+          entity:
+            domain: light
+    boolean_turn_off_lights:
+      name: "Turn off lights automatically"
+      selector:
+        boolean:
+    duration_turn_off_lights:
+      name: "Timespan to turn off lights"
+      description: "Automatically turn off lights after this time"
+      selector:
+        duration:
+    boolean_turn_on_automation_active_time:
+      name: "Turn manual control back on"
+      description: "Turn on the manual override entity again automatically"
+      selector:
+        boolean:
+    duration_turn_on_aumation_active:
+      name: "Timespan to turn manual control back on"
+      description: "Turn on the manual override entity again if no movement was detected after this timespan"
+      selector:
+        duration:
+    sequence_turn_on_light:
+      name: "Action to turn on light"
+      description: "Activate a scene, a script or check for more conditions"
+      selector:
+        sequence:
+mode: restart
+trigger:
+  - id: "motion_detected"
+    platform: state
+    entity_id: !input motion_sensor
+    from: off
+    to: on
+  - id: "no_motion_detected"
+    platform: state
+    entity_id: !input motion_sensor
+    from: on
+    to: off
+    for: !input duration_turn_off_lights
+  - id: "darkness_on"
+    platform: state
+    entity_id: !input darkness
+    from: off
+    to: on
+  - id: "darkness_off"
+    platform: state
+    entity_id: !input darkness
+    from: on
+    to: off
+  - id: "light_turned_off"
+    platform: state
+    entity_id: !input main_light
+    from: on
+    to: off
+  - id: "light_turned_on"
+    platform: state
+    entity_id: !input main_light
+    from: off
+    to: on
+  - id: "manual_override_reset"
+    platform: state
+    entity_id: !input automation_active
+    from: on
+    to: off
+    for: !input duration_turn_on_aumation_active
+variables:
+    boolean_turn_off_lights: !input boolean_turn_off_lights
+    boolean_turn_on_automation_active_time: !input boolean_turn_on_automation_active_time
+    motion_sensor: !input motion_sensor
+action:
+  - choose:
+    - conditions:
+        - condition: and
+          conditions:
+            - condition: or
+              conditions:
+              - {{ trigger.id == 'motion_detected' }}
+              - {{ trigger.id == 'darkness_on' }}
+            - condition: state
+              entity_id: !input darkness
+              state: on
+            - condition: state
+              entity_id: !input main_light
+              state: off
+            - condition: state
+              entity_id: !input automation_active
+              state: on
+          sequence: !input sequence_turn_on_light
+        - condition: and
+          conditions:
+            - condition: or
+              conditions:
+                - {{ trigger.id == 'no_motion_detected' }}
+                - {{ trigger.id == 'darkness_off' }}
+            - condition: state
+              entity_id: !input automation_active
+              state: on
+            - {{ boolean_turn_off_lights }}
+          sequence:
+            - service: light.turn_off
+              target: !input target_lights
+              data:
+                transition: 10
+        - condition: or
+          conditions:
+          - {{ trigger.id == 'light_turned_on' }}
+          - {{ trigger.id == 'light_turned_off' }}
+          sequence:
+            - choose:
+              - conditions:
+                - condition: not
+                  conditions:
+                  - condition: state
+                    entity_id: !input main_light
+                    to: {{ !states(motion_sensor) }}
+                sequence:
+                  - service: input_boolean.turn_off
+                    target:
+                      entity_id: !input automation_active
+                - condition: state
+                  entity_id: !input main_light
+                  to: {{ !states(motion_sensor) }}
+                  sequence:
+                    - service: input_boolean.turn_on
+                      target:
+                        entity_id: !input automation_active
+        - condition: and
+          conditions:
+            - {{ trigger.id == 'manual_override_reset' }}
+            - {{ boolean_turn_on_automation_active_time }}
+          sequence:
+            - service: input_boolean.turn_on
+              target:
+                entity_id: !input automation_active

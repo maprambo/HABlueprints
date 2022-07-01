@@ -1,5 +1,5 @@
 blueprint:
-  name: "Sensor-activated light with actions"
+  name: "Motion-activated light with actions"
   domain: automation
   description: "Runs a series of action for a light based on a motion sensor, depending on environmental lighting and including a manual override"
   input:
@@ -21,7 +21,7 @@ blueprint:
       description: "A binary sensor to indicate darkness. Use a threshold helper if necessary."
       selector:
         entity:
-          domain: input_boolean
+          domain: binary_sensor
     main_light:
       name: "Main light"
       description: "The main light entity to check state on"

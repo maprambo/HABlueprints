@@ -177,6 +177,7 @@ action:
         state: "on"
       - condition: state                          # Except if it was turned off by darkness
         entity_id: !input darkness
+        state: "off"
         for: "00:00:03"
       sequence:
       - service: input_boolean.turn_off

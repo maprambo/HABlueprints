@@ -92,6 +92,11 @@ trigger:
     entity_id: !input main_light
     from: "off"
     to: "on"
+  - id: "automation_active_on"
+    platform: state
+    entity_id: !input automation_active
+    from: "off"
+    to: "on"
   - id: "manual_override_reset"
     platform: state
     entity_id: !input motion_sensor
@@ -106,68 +111,88 @@ variables:
 action:
   - choose:
     - conditions:
+# Run the given actions `sequence_turn_on_light` when motion is detected and it is dark.
       - condition: or
         conditions:
         - "{{ trigger.id == 'motion_detected' }}"
-        - "{{ trigger.id == 'darkness_on' }}"
+        - "{{ trigger.id == 'darkness_on' }}"     # Also turn on light when it gets dark meanwhile present
+        - "{{ trigger.id == 'automation_active_on' }}"
+#                                                 # Turn on the light if automation is turned on
       - condition: state
         entity_id: !input darkness
         state: "on"
-      - condition: state
+      - condition: state                          # Don't run the actions, when a specific light scene is already set
         entity_id: !input main_light
         state: "off"
       - condition: state
         entity_id: !input automation_active
         state: "on"
-      - condition: state
-        entity_id: !input motion_sensor
-        state: "on"
+      - condition: not
+        conditions:
+        - condition: state
+          entity_id: !input motion_sensor
+          state: "off"                            # Check presence int the last given minutes
+          for: !input duration_turn_off_lights
       sequence: !input sequence_turn_on_light
     - conditions:
+# Turn off the light when it gets bright or the motion is not detected no more
       - condition: or
         conditions:
         - "{{ trigger.id == 'no_motion_detected' }}"
         - "{{ trigger.id == 'darkness_off' }}"
+        - "{{ trigger.id == 'automation_active_on' }}"
+#                                                 # Turn off the light if automation is turned on
       - condition: state
         entity_id: !input automation_active
         state: "on"
       - "{{ boolean_turn_off_lights }}"
+      - condition: or
+        conditions:
+        - condition: state
+          entity_id: !input darkness
+          state: "off"
+        - condition: state
+          entity_id: !input motion_sensor
+          state: "off"
       sequence:
       - service: light.turn_off
         target: !input target_lights
         data:
           transition: 10
+# Turn on the automation if the light is turned on in presence (leave off if activated from another place)
     - conditions:
-      - condition: or
-        conditions:
-        - "{{ trigger.id == 'light_turned_on' }}"
-        - "{{ trigger.id == 'light_turned_off' }}"
+      - "{{ trigger.id == 'light_turned_on' }}"
+      - condition: state
+        entity_id: !input motion_sensor
+        state: "on"
       sequence:
-      - choose:
-        - conditions:
-          - condition: template
-            value_template: "{{ states(motion_sensor) != states(main_light) }}"
-          - condition: or
-            conditions:
-              - condition: state
-                entity_id: !input motion_sensor
-                state: "on"
-              - condition: state
-                entity_id: !input motion_sensor
-                state: "off"
-                for: !input duration_turn_off_lights
-          - "{{ boolean_turn_off_lights }}"
-          sequence:
-          - service: input_boolean.turn_off
-            target:
-              entity_id: !input automation_active
-        - conditions:
-          - condition: template
-            value_template: "{{ states(motion_sensor) == states(main_light) }}"
-          sequence:
-          - service: input_boolean.turn_on
-            target:
-              entity_id: !input automation_active
+      - service: input_boolean.turn_on
+        target:
+          entity_id: !input automation_active
+# Turn off the automation if the light is turned off despite motion
+    - conditions:
+      - "{{ trigger.id == 'light_turned_off' }}"
+      - condition: state
+        entity_id: !input motion_sensor
+        state: "on"
+      - condition: state                          # Except if it was turned off by darkness
+        entity_id: !input darkness
+        for: "00:00:03"
+      sequence:
+      - service: input_boolean.turn_off
+        target:
+          entity_id: !input automation_active
+# Turn off the automation if the light is turned on from another place
+    - conditions:
+      - "{{ trigger.id == 'light_turned_on' }}"
+      - condition: state
+        entity_id: !input motion_sensor
+        state: "off"
+      sequence:
+      - service: input_boolean.turn_off
+        target:
+          entity_id: !input automation_active
+# Turn on automation after given time of unpresence
     - conditions:
       - "{{ trigger.id == 'manual_override_reset' }}"
       - "{{ boolean_turn_on_automation_active_time }}"
@@ -175,14 +200,3 @@ action:
       - service: input_boolean.turn_on
         target:
           entity_id: !input automation_active
-      - choose:
-        - conditions:
-          - condition: state
-            entity_id: !input motion_sensor
-            state: "off"
-          - "{{ boolean_turn_off_lights }}"
-          sequence:
-          - service: light.turn_off
-            target: !input target_lights
-            data:
-              transition: 10

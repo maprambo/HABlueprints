@@ -144,6 +144,16 @@ action:
         - conditions:
           - condition: template
             value_template: "{{ states(motion_sensor) != states(main_light) }}"
+          - condition: or
+            conditions:
+              - condition: state
+                entity_id: !input motion_sensor
+                state: "on"
+              - condition: state
+                entity_id: !input motion_sensor
+                state: "off"
+                for: !input duration_turn_off_lights
+          - "{{ boolean_turn_off_lights }}"
           sequence:
           - service: input_boolean.turn_off
             target:

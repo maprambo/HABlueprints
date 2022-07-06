@@ -146,6 +146,10 @@ action:
         entity_id: !input automation_active
         state: "on"
       - "{{ boolean_turn_off_lights }}"
+      - condition: state
+        entity_id: !input main_light
+        state: "on"
+        for: "00:00:03"
       - condition: or
         conditions:
         - condition: state

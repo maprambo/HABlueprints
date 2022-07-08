@@ -27,7 +27,7 @@ blueprint:
           domain: input_number
     program_dropdown:
       name: "Program dropdown"
-      description: "Input select entity for the desired program. Values of this dropdown should be 'day', 'night', 'away', 'off'".
+      description: "Input select entity for the desired program. Values of this dropdown should be \'day\', \'night\', \'away\', \'off\'".
       selector:
         entity:
           domain: input_select

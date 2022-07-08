@@ -27,7 +27,7 @@ blueprint:
           domain: input_number
     program_dropdown:
       name: "Program dropdown"
-      description: "Input select entity for the desired program. Values of this dropdown should be \'day\', \'night\', \'away\', \'off\'".
+      description: "Input select entity for the desired program. Values of this dropdown should be day, night, away, off".
       selector:
         entity:
           domain: input_select
@@ -68,6 +68,13 @@ variables:
   program: {{ states(!input program_dropdown).lower() }}
 action:
   - choose:
+    - conditions:
+      - "{{ trigger.id == 'program_change' }}"
+      - "{{ program == 'off' }}"
+      sequence:
+      - service: climate.turn_off
+        target:
+          entity_id: !input heater
     - conditions:
       - condition: or
         - conditions:

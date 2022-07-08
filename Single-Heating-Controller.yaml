@@ -62,10 +62,10 @@ trigger:
     from: "on"
     to: "off"
 variables:
-  day_temp: {{ states(!input day_temp_input) }}
-  night_temp: {{ states(!input night_temp_input) }}
-  away_temp: {{ states(!input away_temp_input) }}
-  program: {{ states(!input program_dropdown).lower() }}
+  day_temp: "{{ states(!input day_temp_input) }}"
+  night_temp: "{{ states(!input night_temp_input) }}"
+  away_temp: "{{ states(!input away_temp_input) }}"
+  program: "{{ states(!input program_dropdown).lower() }}"
 action:
   - choose:
     - conditions:

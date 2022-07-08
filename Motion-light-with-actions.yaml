@@ -11,7 +11,7 @@ blueprint:
           domain: binary_sensor
           device_class: motion
     automation_active:
-      name: "Manual override / Automation active"
+      name: "Automation active (manual override)"
       description: "An input boolean to turn the motion sensoring on or off"
       selector:
         entity:
@@ -173,15 +173,27 @@ action:
       - service: input_boolean.turn_on
         target:
           entity_id: !input automation_active
-# Turn off the automation if the light is turned off despite motion
+# Turn on the automation if the light is turned off in brightness
+    - conditions:
+      - "{{ trigger.id == 'light_turned_off' }}"
+      - "{{ boolean_turn_on_automation_active_time }}"
+      - condition: state
+        entity_id: !input darkness
+        state: "off"
+        for: !input duration_turn_on_automation_active
+      sequence:
+      - service: input_boolean.turn_on
+        target:
+          entity_id: !input automation_active
+# Turn off the automation if the light is turned off despite motion and darkness
     - conditions:
       - "{{ trigger.id == 'light_turned_off' }}"
       - condition: state
         entity_id: !input motion_sensor
         state: "on"
-      - condition: state                          # Except if it was turned off by darkness
+      - condition: state                          # When it's dark, but not triggered by darkness
         entity_id: !input darkness
-        state: "off"
+        state: "on"
         for: "00:00:03"
       sequence:
       - service: input_boolean.turn_off

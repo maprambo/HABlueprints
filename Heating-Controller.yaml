@@ -1,0 +1,116 @@
+blueprint:
+  name: "Heating controller"
+  description: "Sets the temperature to a heater using input number entitites for temperatures, a dropdown selector and window contacts"
+  input:
+    heater:
+      name: "Climate entity"
+      selector:
+        entity:
+          domain: climate
+    day_temp_input:
+      name: "Day temperature"
+      description: "Input number entity for the day / normal temperature"
+      selector:
+        entity:
+          domain: input_number
+    night_temp_input:
+      name: "Night temperature"
+      description: "Input number entity for the night temperature"
+      selector:
+        entity:
+          domain: input_number
+    away_temp_input:
+      name: "Away temperature"
+      description: "Input number entity for the away temperature (day and night)"
+      selector:
+        entity:
+          domain: input_number
+    program_dropdown:
+      name: "Program dropdown"
+      description: "Input select entity for the desired program. Values of this dropdown should be 'day', 'night', 'away', 'off'.
+      selector:
+        entity:
+          domain: input_select
+    window_contact:
+      name: "Window contact(s)"
+      selector:
+        entity:
+          domain: binary_sensor
+          multiple: true
+mode: restart
+trigger:
+  - id: "day_temp_change"
+    platform: state
+    entity_id: !input day_temp_input
+  - id: "night_temp_change"
+    platform: state
+    entity_id: !input night_temp_input
+  - id: "away_temp_change"
+    platform: state
+    entity_id: !input away_temp_input
+  - id: "program_change"
+    platform: state
+    entity_id: !input program_dropdown
+  - id: "window_opens"
+    platform: state
+    entity_id: !input window_contact
+    from: "off"
+    to: "on"
+  - id: "window_closes"
+    platform: state
+    entity_id: !input window_contact
+    from: "on"
+    to: "off"
+variables:
+  day_temp: {{ states(!input day_temp_input) }}
+  night_temp: {{ states(!input night_temp_input) }}
+  away_temp: {{ states(!input away_temp_input) }}
+  program: {{ states(!input program_dropdown).lower() }}
+action:
+  - choose:
+    - conditions:
+      - condition: or
+        - conditions:
+          - "{{ trigger.id == 'day_temp_change' }}"
+          - "{{ trigger.id == 'night_temp_change' }}"
+          - "{{ trigger.id == 'away_temp_change' }}"
+          - "{{ trigger.id == 'program_change' }}"
+          - "{{ trigger.id == 'window_closes' }}"
+      - condition: state
+        entity_id: !input window_contact
+        state: "off"
+      sequence:
+      - service: climate.turn_on
+        target:
+          entity_id: !input heater
+      - choose:
+        - conditions:
+          - " {{ program == 'day' }} "
+          sequence:
+          - service: climate.set_temperature
+            target:
+              entity_id: !input heater
+            data_template:
+              temperature: '{{ day_temp }}'
+        - conditions:
+          - " {{ program == 'night' }} "
+          sequence:
+          - service: climate.set_temperature
+            target:
+              entity_id: !input heater
+            data_template:
+              temperature: '{{ night_temp }}'
+        - conditions:
+          - " {{ program == 'away' }} "
+          sequence:
+          - service: climate.set_temperature
+            target:
+              entity_id: !input heater
+            data_template:
+              temperature: '{{ away_temp }}'
+    - conditions:
+      - "{{ trigger.id == 'window_opens' }}"
+      sequence:
+      - service: climate.turn_off
+        target:
+          entity_id: !input heater

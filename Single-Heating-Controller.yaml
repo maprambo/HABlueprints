@@ -1,6 +1,7 @@
 blueprint:
   name: "Single heating controller"
   description: "Sets the temperature to a heater using input number entitites for temperatures, a dropdown selector and window contacts"
+  domain: automation
   input:
     heater:
       name: "Climate entity"

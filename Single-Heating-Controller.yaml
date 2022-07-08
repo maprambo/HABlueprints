@@ -77,12 +77,12 @@ action:
           entity_id: !input heater
     - conditions:
       - condition: or
-        - conditions:
-          - "{{ trigger.id == 'day_temp_change' }}"
-          - "{{ trigger.id == 'night_temp_change' }}"
-          - "{{ trigger.id == 'away_temp_change' }}"
-          - "{{ trigger.id == 'program_change' }}"
-          - "{{ trigger.id == 'window_closes' }}"
+        conditions:
+        - "{{ trigger.id == 'day_temp_change' }}"
+        - "{{ trigger.id == 'night_temp_change' }}"
+        - "{{ trigger.id == 'away_temp_change' }}"
+        - "{{ trigger.id == 'program_change' }}"
+        - "{{ trigger.id == 'window_closes' }}"
       - condition: state
         entity_id: !input window_contact
         state: "off"

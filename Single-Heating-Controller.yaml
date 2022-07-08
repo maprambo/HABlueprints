@@ -1,5 +1,5 @@
 blueprint:
-  name: "Heating controller"
+  name: "Single heating controller"
   description: "Sets the temperature to a heater using input number entitites for temperatures, a dropdown selector and window contacts"
   input:
     heater:

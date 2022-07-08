@@ -32,7 +32,7 @@ blueprint:
         entity:
           domain: input_select
     window_contact:
-      name: "Window contact(s)"
+      name: "Window contacts"
       selector:
         entity:
           domain: binary_sensor

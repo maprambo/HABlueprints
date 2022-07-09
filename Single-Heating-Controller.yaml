@@ -122,23 +122,23 @@ action:
         entity_id: !input window_contact
         state: "off"
       sequence:
-      - repeat:
+      - choose:
+        - conditions:
+          - condition: state
+            entity_id: !input heater
+            state: "off"
           sequence:
             - service: climate.turn_on
               target:
                 entity_id: !input heater
             - delay:
                 milliseconds: 2000
-          until:
-            - condition: state
-              entity_id: !input heater
-              state: "heat"
       - repeat:
           sequence:
             - service: climate.set_temperature
               target:
                 entity_id: !input heater
-              data:
+              data_template:
                 temperature: '{{ target_temp }}'
             - delay:
                 milliseconds: 2000

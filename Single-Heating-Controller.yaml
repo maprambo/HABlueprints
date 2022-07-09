@@ -85,7 +85,7 @@ variables:
   program_dropdown: !input program_dropdown
   program: "{{ states(program_dropdown).lower() }}"
   target_temp: >
-    {%- set temp = namespace(offset=0) %}
+    {%- set temp = namespace(target=0) %}
     {%- if program == 'day' %}
       {%- set temp.target = day_temp %}
     {%- elif program == 'night' %}
@@ -137,14 +137,18 @@ action:
             - delay:
                 milliseconds: 500
           until:
-            # Did it work?
-            - condition: state
-              entity_id: !input heater
-              state: "heat"
-            - condition: state
-              entity_id: !input heater
-              attribute: temperature
-              state: '{{ target_temp }}'
+            - condition: or
+              conditions:
+                - condition: and
+                  conditions:
+                    - condition: state
+                      entity_id: !input heater
+                      state: "heat"
+                    - condition: state
+                      entity_id: !input heater
+                      attribute: temperature
+                      state: '{{ target_temp }}'
+                - "{{ index > 10 }}"
     - conditions:
       - "{{ trigger.id == 'window_opens' }}"
       sequence:

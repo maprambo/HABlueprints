@@ -74,11 +74,14 @@ trigger:
     platform: state
     entity_id: !input sun_delta
 variables:
-  sun_delta: !input sun_delta
-  sun_delta_temp: "{{ states(!input sun_delta) }}"
-  day_temp: "{{ states(!input day_temp_input) }}"
-  night_temp: "{{ states(!input night_temp_input) }}"
-  away_temp: "{{ states(!input away_temp_input) }}"
+  sun_delta_input: !input sun_delta
+  day_temp_input: !input day_temp_input
+  night_temp_input: !input night_temp_input
+  away_temp_input: !input away_temp_input
+  sun_delta_temp: "{{ states(sun_delta_input) }}"
+  day_temp: "{{ states(day_temp_input) }}"
+  night_temp: "{{ states(night_temp_input) }}"
+  away_temp: "{{ states(away_temp_input) }}"
   program_dropdown: !input program_dropdown
   program: "{{ states(program_dropdown).lower() }}"
 action:
@@ -112,7 +115,7 @@ action:
           sequence:
           - choose:
             - conditions:
-              - "{{ not not sun_delta }}"
+              - "{{ not not sun_delta_input }}"
               sequence:
               - service: climate.set_temperature
                 target:
@@ -130,7 +133,7 @@ action:
           sequence:
           - choose:
             - conditions:
-              - "{{ not not sun_delta }}"
+              - "{{ not not sun_delta_input }}"
               sequence:
               - service: climate.set_temperature
                 target:
@@ -148,7 +151,7 @@ action:
           sequence:
           - choose:
             - conditions:
-              - "{{ not not sun_delta }}"
+              - "{{ not not sun_delta_input }}"
               sequence:
               - service: climate.set_temperature
                 target:

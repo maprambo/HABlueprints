@@ -129,26 +129,24 @@ action:
                 entity_id: !input heater
             - delay:
                 milliseconds: 2000
+          until:
+            - condition: state
+              entity_id: !input heater
+              state: "heat"
+      - repeat:
+          sequence:
             - service: climate.set_temperature
               target:
                 entity_id: !input heater
-              data_template:
+              data:
                 temperature: '{{ target_temp }}'
             - delay:
                 milliseconds: 2000
           until:
-            - condition: or
-              conditions:
-                - condition: and
-                  conditions:
-                    - condition: state
-                      entity_id: !input heater
-                      state: "heat"
-                    - condition: state
-                      entity_id: !input heater
-                      attribute: temperature
-                      state: '{{ target_temp }}'
-                - "{{ index > 10 }}"
+            - condition: state
+              entity_id: !input heater
+              attribute: temperature
+              state: '{{ target_temp }}'
     - conditions:
       - "{{ trigger.id == 'window_opens' }}"
       sequence:

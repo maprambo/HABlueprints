@@ -84,6 +84,22 @@ variables:
   away_temp: "{{ states(away_temp_input) }}"
   program_dropdown: !input program_dropdown
   program: "{{ states(program_dropdown).lower() }}"
+  target_temp: >
+    "{%- set temp = namespace(offset=0) %}
+    {%- if program == 'day' %}
+      {%- temp.target = day_temp %}
+    {%- elif program == 'night' %}
+      {%- temp.target = night_temp %}
+    {%- elif program == 'away' %}
+      {%- temp.target = away_temp %}
+    {%- endif %}
+    {%- if sun_delta_input %}
+      {%- temp.target = temp.target + sun_delta_temp %}
+      {%- if temp.target < away_temp %}
+        {%- temp.target = away_temp %}
+      {%- endif %}
+    {%- endif %}
+    {{ temp.target }}"
 action:
   - choose:
     - conditions:
@@ -109,61 +125,11 @@ action:
       - service: climate.turn_on
         target:
           entity_id: !input heater
-      - choose:
-        - conditions:
-          - " {{ program == 'day' }} "
-          sequence:
-          - choose:
-            - conditions:
-              - "{{ not not sun_delta_input }}"
-              sequence:
-              - service: climate.set_temperature
-                target:
-                  entity_id: !input heater
-                data_template:
-                  temperature: '{{ day_temp + sun_delta_temp }}'
-            default:
-              - service: climate.set_temperature
-                target:
-                  entity_id: !input heater
-                data_template:
-                  temperature: '{{ day_temp }}'
-        - conditions:
-          - " {{ program == 'night' }} "
-          sequence:
-          - choose:
-            - conditions:
-              - "{{ not not sun_delta_input }}"
-              sequence:
-              - service: climate.set_temperature
-                target:
-                  entity_id: !input heater
-                data_template:
-                  temperature: '{{ night_temp + sun_delta_temp }}'
-            default:
-              - service: climate.set_temperature
-                target:
-                  entity_id: !input heater
-                data_template:
-                  temperature: '{{ night_temp }}'
-        - conditions:
-          - " {{ program == 'away' }} "
-          sequence:
-          - choose:
-            - conditions:
-              - "{{ not not sun_delta_input }}"
-              sequence:
-              - service: climate.set_temperature
-                target:
-                  entity_id: !input heater
-                data_template:
-                  temperature: '{{ away_temp + sun_delta_temp }}'
-            default:
-              - service: climate.set_temperature
-                target:
-                  entity_id: !input heater
-                data_template:
-                  temperature: '{{ away_temp }}'
+      - service: climate.set_temperature
+        target:
+          entity_id: !input heater
+        data_template:
+          temperature: '{{ target_temp }}'
     - conditions:
       - "{{ trigger.id == 'window_opens' }}"
       sequence:

@@ -128,14 +128,14 @@ action:
               target:
                 entity_id: !input heater
             - delay:
-                milliseconds: 500
+                milliseconds: 2000
             - service: climate.set_temperature
               target:
                 entity_id: !input heater
               data_template:
                 temperature: '{{ target_temp }}'
             - delay:
-                milliseconds: 500
+                milliseconds: 2000
           until:
             - condition: or
               conditions:

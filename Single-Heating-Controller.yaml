@@ -85,7 +85,7 @@ variables:
   program_dropdown: !input program_dropdown
   program: "{{ states(program_dropdown).lower() }}"
   target_temp: >
-    "{%- set temp = namespace(offset=0) %}
+    {%- set temp = namespace(offset=0) %}
     {%- if program == 'day' %}
       {%- set temp.target = day_temp %}
     {%- elif program == 'night' %}
@@ -99,7 +99,7 @@ variables:
         {%- set temp.target = away_temp %}
       {%- endif %}
     {%- endif %}
-    {{ temp.target }}"
+    {{- temp.target }}
 action:
   - choose:
     - conditions:
@@ -122,14 +122,29 @@ action:
         entity_id: !input window_contact
         state: "off"
       sequence:
-      - service: climate.turn_on
-        target:
-          entity_id: !input heater
-      - service: climate.set_temperature
-        target:
-          entity_id: !input heater
-        data_template:
-          temperature: '{{ target_temp }}'
+      - repeat:
+          sequence:
+            - service: climate.turn_on
+              target:
+                entity_id: !input heater
+            - delay:
+                milliseconds: 500
+            - service: climate.set_temperature
+              target:
+                entity_id: !input heater
+              data_template:
+                temperature: '{{ target_temp }}'
+            - delay:
+                milliseconds: 500
+          until:
+            # Did it work?
+            - condition: state
+              entity_id: !input heater
+              state: "heat"
+            - condition: state
+              entity_id: !input heater
+              attribute: temperature
+              state: '{{ target_temp }}'
     - conditions:
       - "{{ trigger.id == 'window_opens' }}"
       sequence:

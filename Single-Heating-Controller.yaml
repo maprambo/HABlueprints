@@ -60,6 +60,7 @@ trigger:
   - id: "program_change"
     platform: state
     entity_id: !input program_dropdown
+    for: "00:00:03"
   - id: "window_opens"
     platform: state
     entity_id: !input window_contact
@@ -111,17 +112,9 @@ action:
           - "{{ program == 'off' }}"
         - "{{ trigger.id == 'window_opens' }}"
       sequence:
-      - repeat:
-          sequence:
-            - service: climate.turn_off
-              target:
-                entity_id: !input heater
-            - delay:
-                milliseconds: 5000
-          until:
-            - condition: state
-              entity_id: !input heater
-              state: "off"
+      - service: climate.turn_off
+        target:
+          entity_id: !input heater
     - conditions:
       - condition: or
         conditions:
@@ -141,34 +134,13 @@ action:
             entity_id: !input heater
             state: "off"
           sequence:
-            - repeat:
-                sequence:
-                  - service: climate.turn_off
-                    target:
-                      entity_id: !input heater
-                  - delay:
-                      milliseconds: 5000
-                  - service: climate.turn_on
-                    target:
-                      entity_id: !input heater
-                  - delay:
-                      milliseconds: 5000
-                until:
-                  - condition: state
-                    entity_id: !input heater
-                    state: "heat"
-      - repeat:
-          sequence:
-            - service: climate.set_temperature
+            - service: climate.turn_on
               target:
                 entity_id: !input heater
-              data_template:
-                temperature: '{{ target_temp }}'
             - delay:
                 milliseconds: 5000
-          until:
-            - condition: state
-              entity_id: !input heater
-              attribute: temperature
-              state: '{{ target_temp }}'
-
+      - service: climate.set_temperature
+        target:
+          entity_id: !input heater
+        data_template:
+          temperature: '{{ target_temp }}'

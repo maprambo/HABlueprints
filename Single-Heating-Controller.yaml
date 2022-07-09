@@ -87,16 +87,16 @@ variables:
   target_temp: >
     "{%- set temp = namespace(offset=0) %}
     {%- if program == 'day' %}
-      {%- temp.target = day_temp %}
+      {%- set temp.target = day_temp %}
     {%- elif program == 'night' %}
-      {%- temp.target = night_temp %}
+      {%- set temp.target = night_temp %}
     {%- elif program == 'away' %}
-      {%- temp.target = away_temp %}
+      {%- set temp.target = away_temp %}
     {%- endif %}
     {%- if sun_delta_input %}
-      {%- temp.target = temp.target + sun_delta_temp %}
+      {%- set temp.target = temp.target + sun_delta_temp %}
       {%- if temp.target < away_temp %}
-        {%- temp.target = away_temp %}
+        {%- set temp.target = away_temp %}
       {%- endif %}
     {%- endif %}
     {{ temp.target }}"

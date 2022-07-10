@@ -102,6 +102,8 @@ variables:
     {%- endif %}
     {{- temp.target }}
 action:
+  - delay:
+      milliseconds: 10000
   - choose:
     - conditions:
       - condition: or
@@ -127,6 +129,7 @@ action:
       - condition: state
         entity_id: !input window_contact
         state: "off"
+      - "{{ program != 'off' }}"
       sequence:
       - choose:
         - conditions:
@@ -138,7 +141,7 @@ action:
               target:
                 entity_id: !input heater
             - delay:
-                milliseconds: 5000
+                milliseconds: 10000
       - service: climate.set_temperature
         target:
           entity_id: !input heater

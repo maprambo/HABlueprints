@@ -59,7 +59,7 @@ blueprint:
       description: "Activate a scene, a script or check for more conditions"
       selector:
         action:
-mode: restart
+mode: queued
 trigger:
   - id: "motion_detected"
     platform: state
@@ -116,7 +116,6 @@ action:
         conditions:
         - "{{ trigger.id == 'motion_detected' }}"
         - "{{ trigger.id == 'darkness_on' }}"     # Also turn on light when it gets dark meanwhile present
-        - "{{ trigger.id == 'automation_active_on' }}"
 #                                                 # Turn on the light if automation is turned on
       - condition: state
         entity_id: !input darkness

@@ -38,13 +38,14 @@ blueprint:
         entity:
           domain: binary_sensor
           multiple: true
+      default: []
     sun_delta:
       name: "Temperature delta"
       description: "A temperature delta input number e.g. caluclated respecting the weather report"
       selector:
         entity:
           domain: input_number
-      default: []
+      default: {}
 mode: restart
 trigger:
   - id: "day_temp_change"

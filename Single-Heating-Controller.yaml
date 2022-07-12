@@ -44,7 +44,7 @@ blueprint:
       selector:
         entity:
           domain: input_number
-      default: {}
+      default: []
 mode: restart
 trigger:
   - id: "day_temp_change"

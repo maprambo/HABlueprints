@@ -46,7 +46,7 @@ blueprint:
         entity:
           domain: input_number
       default: {}
-mode: restart
+mode: queued
 trigger:
   - id: "day_temp_change"
     platform: state
@@ -102,8 +102,6 @@ variables:
     {%- endif %}
     {{- temp.target }}
 action:
-  - delay:
-      milliseconds: 10000
   - choose:
     - conditions:
       - condition: or
@@ -117,6 +115,8 @@ action:
       - service: climate.turn_off
         target:
           entity_id: !input heater
+      - delay:
+          milliseconds: 10000
     - conditions:
       - condition: or
         conditions:
@@ -147,3 +147,5 @@ action:
           entity_id: !input heater
         data_template:
           temperature: '{{ target_temp }}'
+      - delay:
+          milliseconds: 10000

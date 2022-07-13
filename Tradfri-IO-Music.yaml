@@ -47,7 +47,8 @@ action:
     - "{{ endpoint_id == 1 }}"
     sequence:
     - service: media_player.turn_off
-      target: !input 'media_player'
+      target:
+        entity_id: !input 'media_player'
   - conditions:
     - "{{ command == 'move_with_on_off' }}"
     - "{{ cluster_id == 8 }}"
@@ -59,7 +60,8 @@ action:
           value_template: "{{ repeat.index < 100 }}"
         sequence:
         - service: media_player.volume_set
-          entity_id: !input 'media_player'
+          target:
+            entity_id: !input 'media_player'
           data_template:
             volume_level: '{{ states_attr(media_player, "volume_level") + 0.01 }}'
         - delay: 1
@@ -74,7 +76,8 @@ action:
           value_template: "{{ repeat.index < 100 }}"
         sequence:
         - service: media_player.volume_set
-          entity_id: !input 'media_player'
+          target:
+            entity_id: !input 'media_player'
           data_template:
             volume_level: '{{ states_attr(media_player, "volume_level") - 0.01 }}'
         - delay: 1
@@ -84,4 +87,5 @@ action:
     - "{{ endpoint_id == 1 }}"
     sequence:
     - service: media_player.turn_off
-      target: !input media_player
+      target:
+        entity_id: !input media_player

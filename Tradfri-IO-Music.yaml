@@ -33,17 +33,17 @@ blueprint:
           max: 0.2
           step: 0.01
           mode: slider
-      stop_action:
-        name: Stop action
-        description: What to do on 0 button press short
-        default: "Turn off"
-        selector:
-          select:
-            options:
-              - Turn off
-              - Stop
-              - Pause
-              - Nothing
+    stop_action:
+      name: Stop action
+      description: What to do on 0 button press short
+      default: "Turn off"
+      selector:
+        select:
+          options:
+            - Turn off
+            - Stop
+            - Pause
+            - Nothing
 mode: restart
 trigger:
 - platform: event

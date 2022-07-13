@@ -70,46 +70,6 @@ action:
     - "{{ cluster_id == 6 }}"
     - "{{ endpoint_id == 1 }}"
     sequence:
-    - service: media_player.turn_off
-      target:
-        entity_id: !input 'media_player'
-  - conditions:
-    - "{{ command == 'move_with_on_off' }}"
-    - "{{ cluster_id == 8 }}"
-    - "{{ endpoint_id == 1 }}"
-    sequence:
-      repeat:
-        while:
-        - condition: template
-          value_template: "{{ repeat.index < max_repetitions }}"
-        sequence:
-        - service: media_player.volume_set
-          target:
-            entity_id: !input 'media_player'
-          data_template:
-            volume_level: '{{ state_attr(media_player, "volume_level") + volume_step }}'
-        - delay: 1
-  - conditions:
-    - "{{ command == 'move' }}"
-    - "{{ cluster_id == 8 }}"
-    - "{{ endpoint_id == 1 }}"
-    sequence:
-      repeat:
-        while:
-        - condition: template
-          value_template: "{{ repeat.index < max_repetitions }}"
-        sequence:
-        - service: media_player.volume_set
-          target:
-            entity_id: !input 'media_player'
-          data_template:
-            volume_level: '{{ state_attr(media_player, "volume_level") - volume_step }}'
-        - delay: 1
-  - conditions:
-    - "{{ command == 'stop' }}"
-    - "{{ cluster_id == 8 }}"
-    - "{{ endpoint_id == 1 }}"
-    sequence:
     - choose:
       - conditions:
         - "{{ stop_action == 'Turn off' }}"
@@ -129,3 +89,44 @@ action:
         - service: media_player.media_pause
           target:
             entity_id: !input media_player
+  - conditions:
+    - "{{ command == 'move_with_on_off' }}"
+    - "{{ cluster_id == 8 }}"
+    - "{{ endpoint_id == 1 }}"
+    sequence:
+      repeat:
+        while:
+        - condition: template
+          value_template: "{{ repeat.index < max_repetitions }}"
+        sequence:
+        - service: media_player.volume_set
+          target:
+            entity_id: !input 'media_player'
+          data_template:
+            volume_level: '{{ state_attr(media_player, "volume_level") + volume_step }}'
+        - delay:
+            milliseconds: 500
+  - conditions:
+    - "{{ command == 'move' }}"
+    - "{{ cluster_id == 8 }}"
+    - "{{ endpoint_id == 1 }}"
+    sequence:
+      repeat:
+        while:
+        - condition: template
+          value_template: "{{ repeat.index < max_repetitions }}"
+        sequence:
+        - service: media_player.volume_set
+          target:
+            entity_id: !input 'media_player'
+          data_template:
+            volume_level: '{{ state_attr(media_player, "volume_level") - volume_step }}'
+        - delay:
+            milliseconds: 500
+  - conditions:
+    - "{{ command == 'stop' }}"
+    - "{{ cluster_id == 8 }}"
+    - "{{ endpoint_id == 1 }}"
+    sequence:
+    - delay:
+        milliseconds: 500

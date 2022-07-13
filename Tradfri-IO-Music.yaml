@@ -23,6 +23,16 @@ blueprint:
       default: []
       selector:
         action: {}
+    volume_step:
+      name: Volume step
+      description: Volume step (volume between 0.00 and 1.00)
+      default: 0.01
+      selector:
+        number:
+          min: 0.0
+          max: 0.2
+          step: 0.01
+          mode: slider
 mode: restart
 trigger:
 - platform: event
@@ -34,6 +44,8 @@ variables:
   cluster_id: "{{ trigger.event.data.cluster_id }}"
   endpoint_id: "{{ trigger.event.data.endpoint_id }}"
   media_player: !input media_player
+  volume_step: !input volume_step
+  max_repetitions: "{{ ( 1 / volume_step ) | int + 2 }}"
 action:
 - choose:
   - conditions:
@@ -57,13 +69,13 @@ action:
       repeat:
         while:
         - condition: template
-          value_template: "{{ repeat.index < 100 }}"
+          value_template: "{{ repeat.index < max_repetitions }}"
         sequence:
         - service: media_player.volume_set
           target:
             entity_id: !input 'media_player'
           data_template:
-            volume_level: '{{ state_attr(media_player, "volume_level") + 0.01 }}'
+            volume_level: '{{ state_attr(media_player, "volume_level") + volume_step }}'
         - delay: 1
   - conditions:
     - "{{ command == 'move' }}"
@@ -73,13 +85,13 @@ action:
       repeat:
         while:
         - condition: template
-          value_template: "{{ repeat.index < 100 }}"
+          value_template: "{{ repeat.index < max_repetitions }}"
         sequence:
         - service: media_player.volume_set
           target:
             entity_id: !input 'media_player'
           data_template:
-            volume_level: '{{ state_attr(media_player, "volume_level") - 0.01 }}'
+            volume_level: '{{ state_attr(media_player, "volume_level") - volume_step }}'
         - delay: 1
   - conditions:
     - "{{ command == 'stop' }}"

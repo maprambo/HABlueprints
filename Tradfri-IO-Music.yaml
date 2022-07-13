@@ -63,7 +63,7 @@ action:
           target:
             entity_id: !input 'media_player'
           data_template:
-            volume_level: '{{ states_attr(media_player, "volume_level") + 0.01 }}'
+            volume_level: '{{ state_attr(media_player, "volume_level") + 0.01 }}'
         - delay: 1
   - conditions:
     - "{{ command == 'move' }}"
@@ -79,7 +79,7 @@ action:
           target:
             entity_id: !input 'media_player'
           data_template:
-            volume_level: '{{ states_attr(media_player, "volume_level") - 0.01 }}'
+            volume_level: '{{ state_attr(media_player, "volume_level") - 0.01 }}'
         - delay: 1
   - conditions:
     - "{{ command == 'stop' }}"

@@ -1,0 +1,88 @@
+blueprint:
+  name: Ikea I/O Media Control
+  description: "Control your media with IKEA Tradfri on/off switch."
+  domain: automation
+  input:
+    remote:
+      name: Remote
+      description: The remote that will control the music
+      selector:
+        device:
+          integration: zha
+          manufacturer: 'IKEA of Sweden'
+          model: 'TRADFRI on/off switch'
+    media_player:
+      name: Media Player
+      description: The media player that will be controlled
+      selector:
+        entity:
+          domain: media_player
+    play_action:
+      name: Play action
+      description: Action to run on I button press short
+      default: []
+      selector:
+        action: {}
+mode: restart
+trigger:
+- platform: event
+  event_type: zha_event
+  event_data:
+    device_id: !input 'remote'
+variables:
+  command: "{{ trigger.event.data.command }}"
+  cluster_id: "{{ trigger.event.data.cluster_id }}"
+  endpoint_id: "{{ trigger.event.data.endpoint_id }}"
+  force_default: !input 'force_default'
+  media_player: !input media_player
+action:
+- choose:
+  - conditions:
+    - "{{ command == 'on' }}"
+    - "{{ cluster_id == 6 }}"
+    - "{{ endpoint_id == 1 }}"
+    sequence: !input 'play_action'
+  - conditions:
+    - "{{ command == 'off' }}"
+    - "{{ cluster_id == 6 }}"
+    - "{{ endpoint_id == 1 }}"
+    sequence:
+    - service: media_player.turn_off
+      target: !input 'media_player'
+  - conditions:
+    - "{{ command == 'move_with_on_off' }}"
+    - "{{ cluster_id == 8 }}"
+    - "{{ endpoint_id == 1 }}"
+    sequence:
+      repeat:
+        while:
+        - condition: template
+          value_template: "{{ repeat.index < 100 }}"
+        sequence:
+        - service: media_player.volume_set
+          entity_id: !input 'media_player'
+          data_template:
+            volume_level: '{{ states_attr(media_player, "volume_level") + 0.01 }}'
+        - delay: 1
+  - conditions:
+    - "{{ command == 'move' }}"
+    - "{{ cluster_id == 8 }}"
+    - "{{ endpoint_id == 1 }}"
+    sequence:
+      repeat:
+        while:
+        - condition: template
+          value_template: "{{ repeat.index < 100 }}"
+        sequence:
+        - service: media_player.volume_set
+          entity_id: !input 'media_player'
+          data_template:
+            volume_level: '{{ states_attr(media_player, "volume_level") - 0.01 }}'
+        - delay: 1
+  - conditions:
+    - "{{ command == 'stop' }}"
+    - "{{ cluster_id == 8 }}"
+    - "{{ endpoint_id == 1 }}"
+    sequence:
+    - service: media_player.turn_off
+      target: !input media_player

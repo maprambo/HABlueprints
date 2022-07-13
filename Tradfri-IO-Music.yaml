@@ -58,6 +58,7 @@ variables:
   volume_step: !input volume_step
   max_repetitions: "{{ ( 1 / volume_step ) | int + 2 }}"
   stop_action: !input stop_action
+  start_volume: "{{ state_attr(media_player, 'volume_level') }}"
 action:
 - choose:
   - conditions:
@@ -103,7 +104,7 @@ action:
           target:
             entity_id: !input 'media_player'
           data_template:
-            volume_level: '{{ state_attr(media_player, "volume_level") + volume_step }}'
+            volume_level: '{{ start_volume + volume_step }}'
         - delay:
             milliseconds: 500
   - conditions:
@@ -120,7 +121,7 @@ action:
           target:
             entity_id: !input 'media_player'
           data_template:
-            volume_level: '{{ state_attr(media_player, "volume_level") - volume_step }}'
+            volume_level: '{{ start_volume - volume_step }}'
         - delay:
             milliseconds: 500
   - conditions:

@@ -9,7 +9,7 @@ blueprint:
         entity:
           domain: media_player
     playlist_name:
-      name: "Name of the playlist to play (without ' (playlist)'-suffix)
+      name: "Name of the playlist to play (without ' (playlist)'-suffix)"
       selector:
         text:
     shuffle:

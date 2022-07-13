@@ -101,7 +101,7 @@ action:
           value_template: "{{ repeat.index < max_repetitions }}"
         sequence:
         - variables:
-          set_volume: '{{ set_volume + volume_step }}'
+            set_volume: '{{ set_volume + volume_step }}'
         - service: media_player.volume_set
           target:
             entity_id: !input 'media_player'
@@ -120,7 +120,7 @@ action:
           value_template: "{{ repeat.index < max_repetitions }}"
         sequence:
         - variables:
-          set_volume: '{{ set_volume - volume_step }}'
+            set_volume: '{{ set_volume - volume_step }}'
         - service: media_player.volume_set
           target:
             entity_id: !input 'media_player'

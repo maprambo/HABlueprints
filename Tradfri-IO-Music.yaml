@@ -33,7 +33,6 @@ variables:
   command: "{{ trigger.event.data.command }}"
   cluster_id: "{{ trigger.event.data.cluster_id }}"
   endpoint_id: "{{ trigger.event.data.endpoint_id }}"
-  force_default: !input 'force_default'
   media_player: !input media_player
 action:
 - choose:

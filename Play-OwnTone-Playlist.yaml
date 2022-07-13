@@ -21,11 +21,12 @@ blueprint:
       selector:
         boolean:
 mode: restart
+icon: mdi:playlist-play
 variables:
   shuffle: !input shuffle
   repeat: !input repeat
   playlist_name: !input playlist_name
-action:
+sequence:
   - service: media_player.select_source
     data:
       source: "{{ playlist_name }} (playlist)"

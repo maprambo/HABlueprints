@@ -16,6 +16,7 @@ blueprint:
       name: "Shuffle"
       selector:
         boolean:
+      default: {}
 mode: restart
 icon: mdi:playlist-play
 variables:

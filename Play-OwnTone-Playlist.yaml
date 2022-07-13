@@ -1,0 +1,54 @@
+blueprint:
+  name: "Play Playlist with OwnTone"
+  domain: script
+  description: "Plays a playlist with OwnTone"
+  input:
+    owntone_server:
+      name: "OwnTone Server"
+      selector:
+        entity:
+          domain: media_player
+    playlist_name:
+      name: "Name of the playlist to play (without ' (playlist)'-suffix)
+      selector:
+        text:
+    shuffle:
+      name: "Shuffle"
+      selector:
+        boolean:
+    repeat:
+      name: "Repeat"
+      selector:
+        boolean:
+mode: restart
+variables:
+  shuffle: !input shuffle
+  repeat: !input repeat
+  playlist_name: !input playlist_name
+action:
+  - service: media_player.select_source
+    data:
+      source: "{{ playlist_name }} (playlist)"
+    target:
+      entity_id: !input owntone_server
+  - choose:
+    - conditions:
+      - "{{ shuffle }}"
+      sequence:
+      - service: media_player.shuffle_set
+        data:
+          shuffle: true
+        target:
+          entity_id: !input owntone_server
+  - choose:
+    - conditions:
+      - "{{ repeat }}"
+      sequence:
+      - service: media_player.repeat_set
+        data:
+          repeat: all
+        target:
+          entity_id: !input owntone_server
+  - service: media_player.media_play
+    target:
+      entity_id: !input owntone_server

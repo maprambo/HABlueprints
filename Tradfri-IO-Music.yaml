@@ -71,6 +71,11 @@ trigger:
   event_data:
     device_id: !input 'remote'
     command: 'stop'
+- platform: event
+  event_type: zha_event
+  event_data:
+    device_id: !input 'remote'
+    command: 'stop_with_on_off'
 variables:
   command: "{{ trigger.event.data.command }}"
   cluster_id: "{{ trigger.event.data.cluster_id }}"

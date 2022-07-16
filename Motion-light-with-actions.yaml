@@ -166,7 +166,7 @@ action:
           for: !input duration_turn_off_lights
       - condition: or
         conditions:
-        - "{{ not window_contact }}
+        - "{{ not window_contact }}"
         - condition: state
           entity_id: !input window_contact
           state: "off"

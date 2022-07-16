@@ -270,4 +270,12 @@ action:
           hs_color:
             - 0
             - 100
+        target: !input target_lights  # Tradfri Bug: Repeat when color and brightness change
+      - delay: 1
+      - service: light.turn_on
+        data:
+          brightness: 5
+          hs_color:
+            - 0
+            - 100
         target: !input target_lights

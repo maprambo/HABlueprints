@@ -258,6 +258,10 @@ action:
       - condition: state
         entity_id: !input main_light
         state: "on"
+      - condition: numeric_state
+        entity_id: !input main_light
+        attribute: brightness
+        above: 19
       - condition: state
         entity_id: !input darkness
         state: "on"

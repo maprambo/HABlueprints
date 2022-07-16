@@ -140,9 +140,6 @@ action:
       - condition: state
         entity_id: !input darkness
         state: "on"
-      - condition: state                          # Don't run the actions, when a specific light scene is already set
-        entity_id: !input main_light
-        state: "off"
       - condition: or
         conditions:
         - condition: state                        # Don't run the actions, when a specific light scene is already set

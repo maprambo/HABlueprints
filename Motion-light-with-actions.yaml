@@ -164,11 +164,12 @@ action:
           entity_id: !input motion_sensor
           state: "off"                            # Check presence int the last given minutes
           for: !input duration_turn_off_lights
-      {% if window_contact %}
-      - condition: state
-        entity_id: !input window_contact
-        state: "off"
-      {% endif %}
+      - condition: or
+        conditions:
+        - "{{ not window_contact }}
+        - condition: state
+          entity_id: !input window_contact
+          state: "off"
       sequence: !input sequence_turn_on_light
     - conditions:
 # Turn off the light when it gets bright or the motion is not detected no more

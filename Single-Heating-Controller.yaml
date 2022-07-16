@@ -112,6 +112,19 @@ action:
           - "{{ program == 'off' }}"
         - "{{ trigger.id == 'window_opens' }}"
       sequence:
+      - choose:
+        - conditions:
+          - condition: state
+            entity_id: !input heater
+            state: "heat"
+          sequence:
+          - service: climate.set_temperature
+            target:
+              entity_id: !input heater
+            data_template:
+              temperature: 5.0
+          - delay:
+              milliseconds: 10000
       - service: climate.turn_off
         target:
           entity_id: !input heater

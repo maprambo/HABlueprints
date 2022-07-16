@@ -22,6 +22,14 @@ blueprint:
       selector:
         entity:
           domain: binary_sensor
+    window_contact:
+      name: "Window contact(s)"
+      description: "Optionally provided window sensors will dim the light or keep it turned off if a window is open to keep insects out"
+      selector:
+        entity:
+          domain: binary_sensor
+          multiple: true
+      default: []
     main_light:
       name: "Main light"
       description: "The main light entity to check state on"
@@ -103,11 +111,22 @@ trigger:
     from: "on"
     to: "off"
     for: !input duration_turn_on_automation_active
+  - id: "window_opens"
+    platform: state
+    entity_id: !input window_contact
+    from: "off"
+    to: "on"
+  - id: "window_closes"
+    platform: state
+    entity_id: !input window_contact
+    from: "on"
+    to: "off"
 variables:
     boolean_turn_off_lights: !input boolean_turn_off_lights
     boolean_turn_on_automation_active_time: !input boolean_turn_on_automation_active_time
     motion_sensor: !input motion_sensor
     main_light: !input main_light
+    window_contact: !input window_contact
 action:
   - choose:
     - conditions:
@@ -116,6 +135,7 @@ action:
         conditions:
         - "{{ trigger.id == 'motion_detected' }}"
         - "{{ trigger.id == 'darkness_on' }}"     # Also turn on light when it gets dark meanwhile present
+        - "{{ trigger.id == 'window_closes' }}"
 #                                                 # Turn on the light if automation is turned on
       - condition: state
         entity_id: !input darkness
@@ -123,6 +143,18 @@ action:
       - condition: state                          # Don't run the actions, when a specific light scene is already set
         entity_id: !input main_light
         state: "off"
+      - condition: or
+        conditions:
+        - condition: state                        # Don't run the actions, when a specific light scene is already set
+          entity_id: !input main_light
+          state: "off"
+        - condition: and
+          conditions:
+          - "{{ trigger.id == 'window_closes' }}"
+          - condition: state                      # Except if it's the insect light and the window closes again
+            entity_id: !input main_light
+            attribute: "brightness"
+            state: 5
       - condition: state
         entity_id: !input automation_active
         state: "on"
@@ -132,6 +164,11 @@ action:
           entity_id: !input motion_sensor
           state: "off"                            # Check presence int the last given minutes
           for: !input duration_turn_off_lights
+      {% if window_contact %}
+      - condition: state
+        entity_id: !input window_contact
+        state: "off"
+      {% endif %}
       sequence: !input sequence_turn_on_light
     - conditions:
 # Turn off the light when it gets bright or the motion is not detected no more
@@ -216,3 +253,19 @@ action:
       - service: input_boolean.turn_on
         target:
           entity_id: !input automation_active
+    - conditions:
+      - "{{ trigger.id == 'window_opens' }}"
+      - condition: state
+        entity_id: !input main_light
+        state: "on"
+      - condition: state
+        entity_id: !input darkness
+        state: "on"
+      sequence:
+      - service: light.turn_on
+        data:
+          brightness: 5
+          hs_color:
+            - 0
+            - 100
+        target: !input target_lights

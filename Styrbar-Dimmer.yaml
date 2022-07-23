@@ -119,7 +119,7 @@ action:
   - conditions: '{{ command == "move" }}'
     sequence:
     - repeat:
-        until: '{{ command == "stop" }}'
+        until: '{{ command == "stop_with_on_off" }}'
         sequence:
         - service: light.turn_on
           data:
@@ -131,7 +131,7 @@ action:
   - conditions: '{{ command == "move_with_on_off" }}'
     sequence:
     - repeat:
-        until: '{{ command == "stop" }}'
+        until: '{{ command == "stop_with_on_off" }}'
         sequence:
         - service: light.turn_on
           data:

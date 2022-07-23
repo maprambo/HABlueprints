@@ -189,7 +189,14 @@ action:
     - '{{ command == "press" }}'
     - '{{ dataargs[0] == 256 }}'
     sequence:
-    - service: input_select.select_next
+    - choose:
+      - conditions:
+        - "{{ states(action_list).split('.')[0] == 'automation'}}"
+        sequence:
+          - service: automation.turn_off
+            target:
+              entity_id: "{{ states(action_list) }}"
+    - service: input_select.select_previous
       target:
         entity_id: !input action_list
     - choose:
@@ -197,12 +204,18 @@ action:
         - "{{ states(action_list).split('.')[0] == 'script'}}"
         sequence:
           - service: "{{ states(action_list) }}"
+      - conditions:
         - "{{ states(action_list).split('.')[0] == 'scene'}}"
         sequence:
           - service: scene.turn_on
             target:
               entity_id: "{{ states(action_list) }}"
-# Lange nach links
+      - conditions:
+        - "{{ states(action_list).split('.')[0] == 'automation'}}"
+        sequence:
+          - service: automation.turn_on
+            target:
+              entity_id: "{{ states(action_list) }}"# Lange nach links
   - conditions:
     - '{{ command == "hold" }}'
     - '{{ dataargs[0] == 3329 }}'

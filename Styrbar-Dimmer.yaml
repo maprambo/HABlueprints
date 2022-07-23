@@ -131,7 +131,7 @@ action:
         until: '{{ command == "stop_with_on_off" }}'
         sequence:
         - service: light.turn_on
-          target: !input 'main_light'
+          target: !input 'target_light'
           data:
             transition: 1
             brightness_step_pct: -10

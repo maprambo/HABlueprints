@@ -290,7 +290,7 @@ action:
         entity_id: !input darkness
         state: "on"
       sequence:
-      - sercice: scene.create
+      - service: scene.create
         data:
           scene.id: "snaphot_{{ this.entity_id.split('.')[1] }}"
           snapshot_entities: !input target_lights

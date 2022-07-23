@@ -98,6 +98,13 @@ action:
     force_default: !input force_default
     action_list: !input action_list
 - choose:
+  - conditions:
+    - "{{ states(action_list).split('.')[0] == 'automation'}}"
+    sequence:
+      - service: automation.turn_off
+        target:
+          entity_id: "{{ states(action_list) }}"
+- choose:
 # 0. Licht anschalten
   - conditions: '{{ command == "on" }}'
     sequence:
@@ -157,13 +164,6 @@ action:
     - '{{ command == "press" }}'
     - '{{ dataargs[0] == 257 }}'
     sequence:
-    - choose:
-      - conditions:
-        - "{{ states(action_list).split('.')[0] == 'automation'}}"
-        sequence:
-          - service: automation.turn_off
-            target:
-              entity_id: "{{ states(action_list) }}"
     - service: input_select.select_previous
       target:
         entity_id: !input action_list
@@ -189,13 +189,6 @@ action:
     - '{{ command == "press" }}'
     - '{{ dataargs[0] == 256 }}'
     sequence:
-    - choose:
-      - conditions:
-        - "{{ states(action_list).split('.')[0] == 'automation'}}"
-        sequence:
-          - service: automation.turn_off
-            target:
-              entity_id: "{{ states(action_list) }}"
     - service: input_select.select_previous
       target:
         entity_id: !input action_list

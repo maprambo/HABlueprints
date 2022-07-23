@@ -91,6 +91,11 @@ trigger:
   event_data:
     device_id: !input 'remote'
     command: 'hold'
+- platform: event
+  event_type: zha_event
+  event_data:
+    device_id: !input 'remote'
+    command: 'press'
 action:
 - variables:
     command: '{{ trigger.event.data.command }}'
@@ -105,7 +110,7 @@ action:
           state: 'on'
         sequence:
         - delay:
-            milliseconds: 900
+            milliseconds: 1000
     - choose:
       - conditions:
         - condition: or

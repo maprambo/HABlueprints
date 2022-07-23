@@ -95,6 +95,8 @@ action:
 - choose:
   - conditions: '{{ command == "on" }}'
     sequence:
+    - delay:
+       milliseconds: 500
     - choose:
       - conditions:
         - condition: or
@@ -157,16 +159,16 @@ action:
             target: !input target_light
             data:
               hs_color:
-                - '{{ state_attr(main_light, "hs_color")[0] }}'
                 - >-
-                  {% if state_attr(main_light, "hs_color")[1] - 10 < 0 %}
-                    {{ state_attr(main_light, "hs_color")[1] - 10 + 100 }}
+                  {% if state_attr(main_light, "hs_color")[0] - 18 < 0 %}
+                    {{ state_attr(main_light, "hs_color")[0] - 18 + 360 }}
                   {% else %}
-                    {{ state_attr(main_light, "hs_color")[1] - 10 }}
+                    {{ state_attr(main_light, "hs_color")[0] - 18 }}
                   {% endif %}
-              transition: 1
+                - 100
+              transition: 0.5
           - delay:
-              milliseconds: 1000
+              milliseconds: 500
   - conditions:
     - '{{ command == "hold" }}'
     - '{{ dataargs[0] == 3328 }}'
@@ -184,9 +186,9 @@ action:
                   {% else %}
                     {{ state_attr(main_light, "hs_color")[0] + 18 }}
                   {% endif %}
-                - '{{ state_attr(main_light, "hs_color")[1] }}'
-              transition: 1
+                - 100
+              transition: 0.5
           - delay:
-              milliseconds: 1000
+              milliseconds: 500
 mode: restart
 max_exceeded: silent

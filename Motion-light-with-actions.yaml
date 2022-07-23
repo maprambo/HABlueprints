@@ -132,6 +132,7 @@ variables:
     boolean_turn_on_automation_active_time: !input boolean_turn_on_automation_active_time
     motion_sensor: !input motion_sensor
     main_light: !input main_light
+    target_lights: !input target_lights
     window_contact: !input window_contact
 action:
   - choose:
@@ -293,7 +294,7 @@ action:
       - service: scene.create
         data:
           scene_id: "snaphot_{{ this.entity_id.split('.')[1] }}"
-          snapshot_entities: !input target_lights
+          snapshot_entities: " {{ expand(target_lights) }} "
       - service: light.turn_on
         data:
           brightness: 5

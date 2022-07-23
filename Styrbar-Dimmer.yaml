@@ -150,8 +150,7 @@ action:
         until: '{{ command == "release" }}'
         sequence:
           - service: light.turn_on
-            target:
-              entity_id: !input target_light
+            target: !input target_light
             data:
               hs_color:
                 - '{{ state_attr(main_light, "hs_color")[0] }}'
@@ -172,8 +171,7 @@ action:
         until: '{{ command == "release" }}'
         sequence:
           - service: light.turn_on
-            target:
-              entity_id: !input target_light
+            target: !input target_light
             data:
               hs_color:
                 - >-

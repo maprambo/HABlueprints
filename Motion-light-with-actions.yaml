@@ -294,7 +294,7 @@ action:
       - service: scene.create
         data:
           scene_id: "snaphot_{{ this.entity_id.split('.')[1] }}"
-          snapshot_entities: " {{ expand(target_lights) }} "
+          snapshot_entities: " {{ target_lights.entity_id }} "
       - service: light.turn_on
         data:
           brightness: 5

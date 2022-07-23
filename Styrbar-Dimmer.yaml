@@ -26,18 +26,12 @@ blueprint:
       selector:
         entity:
           domain: light
-    button_left:
-      name: Left button
-      description: Action to run on left button press short
-      default: []
+    action_list:
+      name: Action select
+      description: "Input select helper with actions (entity ids) to skip through, scripts and scenes are allowed (e.g. 'script.my_script' and 'scene.my_scene')"
       selector:
-        action: {}
-    button_right:
-      name: Right button
-      description: Action to run on right button press short
-      default: []
-      selector:
-        action: {}
+        entity:
+          domain: input_select
     button_up:
       name: On button
       description: Action to run on up button press short
@@ -101,7 +95,10 @@ action:
     command: '{{ trigger.event.data.command }}'
     dataargs: '{{ trigger.event.data.args }}'
     main_light: !input main_light
+    force_default: !input force_default
+    action_list: !input action_list
 - choose:
+# Licht anschalten
   - conditions: '{{ command == "on" }}'
     sequence:
     - choose:
@@ -119,18 +116,19 @@ action:
           - condition: state
             entity_id: !input 'main_light'
             state: 'on'
-          - condition: and
-            conditions: '{{ force_default }}'
+          - '{{ force_default }}'
         sequence: !input 'button_up'
       default:
       - service: light.turn_on
         target: !input 'target_light'
         data:
           transition: 1
+# Licht ausschalten
   - conditions: '{{ command == "off" }}'
     sequence:
     - service: light.turn_off
       target: !input 'target_light'
+# Herunterdimmen
   - conditions: '{{ command == "move" }}'
     sequence:
     - repeat:
@@ -142,6 +140,7 @@ action:
             transition: 1
             brightness_step_pct: -10
         - delay: '1'
+# Hochdimmen
   - conditions: '{{ command == "move_with_on_off" }}'
     sequence:
     - repeat:
@@ -153,14 +152,57 @@ action:
             transition: 1
             brightness_step_pct: +10
         - delay: '1'
+# Kurz nach links
   - conditions:
     - '{{ command == "press" }}'
     - '{{ dataargs[0] == 257 }}'
-    sequence: !input 'button_left'
+    sequence:
+    - choose:
+      - conditions:
+        - "{{ states(action_list).split('.')[0] == 'automation'}}"
+        sequence:
+          - service: automation.turn_off
+            target:
+              entity_id: "{{ states(action_list) }}"
+    - service: input_select.select_previous
+      target:
+        entity_id: !input action_list
+    - choose:
+      - conditions:
+        - "{{ states(action_list).split('.')[0] == 'script'}}"
+        sequence:
+          - service: "{{ states(action_list) }}"
+      - conditions:
+        - "{{ states(action_list).split('.')[0] == 'scene'}}"
+        sequence:
+          - service: scene.turn_on
+            target:
+              entity_id: "{{ states(action_list) }}"
+      - conditions:
+        - "{{ states(action_list).split('.')[0] == 'automation'}}"
+        sequence:
+          - service: automation.turn_on
+            target:
+              entity_id: "{{ states(action_list) }}"
+# Kurz nach rechts
   - conditions:
     - '{{ command == "press" }}'
     - '{{ dataargs[0] == 256 }}'
-    sequence: !input 'button_right'
+    sequence:
+    - service: input_select.select_next
+      target:
+        entity_id: !input action_list
+    - choose:
+      - conditions:
+        - "{{ states(action_list).split('.')[0] == 'script'}}"
+        sequence:
+          - service: "{{ states(action_list) }}"
+        - "{{ states(action_list).split('.')[0] == 'scene'}}"
+        sequence:
+          - service: scene.turn_on
+            target:
+              entity_id: "{{ states(action_list) }}"
+# Lange nach links
   - conditions:
     - '{{ command == "hold" }}'
     - '{{ dataargs[0] == 3329 }}'
@@ -168,20 +210,66 @@ action:
     - repeat:
         until: '{{ command == "release" }}'
         sequence:
-          - service: light.turn_on
-            target: !input target_light
-            data:
-              hs_color:
-                - >-
-                  {% if state_attr(main_light, "hs_color")[0] - 18 < 0 %}
-                    {{ (state_attr(main_light, "hs_color")[0] - 18 + 360) | int }}
-                  {% else %}
-                    {{ (state_attr(main_light, "hs_color")[0] - 18) | int}}
-                  {% endif %}
-                - 100
-              transition: 1
+          - choose:
+            - conditions:
+# - Weißton-Modus: kälter
+              - condition: state
+                entity_id: !input main_light
+                attribute: color_mode
+                value: color_temp
+              - " {{ state_attr(main_light, 'color_temp') - 10 >= state_attr(main_light, 'min_mireds') }} "
+              sequence:
+              - service: light.turn_on
+                target: !input target_light
+                data:
+                  color_temp: " {{ (state_attr(main_light, 'color_temp') - 10) | int }} "
+                  transition: 1
+# - HS-Modus: langwelliger
+            - conditions:
+              - condition: state
+                entity_id: !input main_light
+                attribute: color_mode
+                value: hs
+              - " {{ state_attr(main_light, 'hs_color')[0] - 18 >= 0 }} "
+              sequence:
+              - service: light.turn_on
+                target: !input target_light
+                data:
+                  hs_color:
+                    - " {{ (state_attr(main_light, 'hs_color')[0] - 18) | int }} "
+                    - 100
+                  transition: 1
+# - HS-Modus -> Weißton-Modus
+            - conditions:
+              - condition: state
+                entity_id: !input main_light
+                attribute: color_mode
+                value: hs
+              - " {{ state_attr(main_light, 'hs_color')[0] - 18 < 0 }} "
+              sequence:
+              - service: light.turn_on
+                target: !input target_light
+                data:
+                  color_temp: " {{ state_attr(main_light, 'max_mireds') | int }} "
+                  transition: 1
+# - Weißton-Modus -> HS-Modus
+            - conditions:
+              - condition: state
+                entity_id: !input main_light
+                attribute: color_mode
+                value: color_temp
+              - " {{ state_attr(main_light, 'color_temp') - 10 < state_attr(main_light, 'min_mireds') }} "
+              sequence:
+              - service: light.turn_on
+                target: !input target_light
+                data:
+                  hs_color:
+                    - 360
+                    - 100
+                  transition: 1
           - delay:
               milliseconds: 1000
+# Lange nach rechts
   - conditions:
     - '{{ command == "hold" }}'
     - '{{ dataargs[0] == 3328 }}'
@@ -189,18 +277,63 @@ action:
     - repeat:
         until: '{{ command == "release" }}'
         sequence:
-          - service: light.turn_on
-            target: !input target_light
-            data:
-              hs_color:
-                - >-
-                  {% if state_attr(main_light, "hs_color")[0] + 18 > 360 %}
-                    {{ (state_attr(main_light, "hs_color")[0] + 18 - 360) | int }}
-                  {% else %}
-                    {{ (state_attr(main_light, "hs_color")[0] + 18) | int }}
-                  {% endif %}
-                - 100
-              transition: 1
+          - choose:
+            - conditions:
+# - Weißton-Modus: wärmer
+              - condition: state
+                entity_id: !input main_light
+                attribute: color_mode
+                value: color_temp
+              - " {{ state_attr(main_light, 'color_temp') + 10 <= state_attr(main_light, 'max_mireds') }} "
+              sequence:
+              - service: light.turn_on
+                target: !input target_light
+                data:
+                  color_temp: " {{ (state_attr(main_light, 'color_temp') + 10) | int }} "
+                  transition: 1
+# - HS-Modus: kurzwelliger
+            - conditions:
+              - condition: state
+                entity_id: !input main_light
+                attribute: color_mode
+                value: hs
+              - " {{ state_attr(main_light, 'hs_color')[0] + 18 <= 360 }} "
+              sequence:
+              - service: light.turn_on
+                target: !input target_light
+                data:
+                  hs_color:
+                    - " {{ (state_attr(main_light, 'hs_color')[0] + 18) | int }} "
+                    - 100
+                  transition: 1
+# - HS-Modus -> Weißton-Modus
+            - conditions:
+              - condition: state
+                entity_id: !input main_light
+                attribute: color_mode
+                value: hs
+              - " {{ state_attr(main_light, 'hs_color')[0] + 18 > 360 }} "
+              sequence:
+              - service: light.turn_on
+                target: !input target_light
+                data:
+                  color_temp: " {{ state_attr(main_light, 'min_mireds') | int }} "
+                  transition: 1
+# - Weißton-Modus -> HS-Modus
+            - conditions:
+              - condition: state
+                entity_id: !input main_light
+                attribute: color_mode
+                value: color_temp
+              - " {{ state_attr(main_light, 'color_temp') + 10 > state_attr(main_light, 'max_mireds') }} "
+              sequence:
+              - service: light.turn_on
+                target: !input target_light
+                data:
+                  hs_color:
+                    - 0
+                    - 100
+                  transition: 1
           - delay:
               milliseconds: 1000
 mode: restart

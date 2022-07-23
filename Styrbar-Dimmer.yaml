@@ -184,6 +184,10 @@ action:
           - service: scene.turn_on
             target:
               entity_id: "{{ states(action_list) }}"
+          - delay: 1
+          - service: scene.turn_on
+            target:
+              entity_id: "{{ states(action_list) }}"
       - conditions:
         - "{{ states(action_list).split('.')[0] == 'automation'}}"
         sequence:
@@ -206,6 +210,10 @@ action:
       - conditions:
         - "{{ states(action_list).split('.')[0] == 'scene'}}"
         sequence:
+          - service: scene.turn_on
+            target:
+              entity_id: "{{ states(action_list) }}"
+          - delay: 1
           - service: scene.turn_on
             target:
               entity_id: "{{ states(action_list) }}"

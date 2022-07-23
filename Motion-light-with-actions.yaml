@@ -292,7 +292,7 @@ action:
       sequence:
       - service: scene.create
         data:
-          scene.id: "snaphot_{{ this.entity_id.split('.')[1] }}"
+          scene_id: "snaphot_{{ this.entity_id.split('.')[1] }}"
           snapshot_entities: !input target_lights
       - service: light.turn_on
         data:

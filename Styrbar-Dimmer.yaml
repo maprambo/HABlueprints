@@ -100,6 +100,12 @@ action:
 - choose:
   - conditions:
     - "{{ states(action_list).split('.')[0] == 'automation'}}"
+    - condition: or
+      conditions:
+      - '{{ command == "on" }}'
+      - '{{ command == "off" }}'
+      - '{{ command == "press" }}'
+      - '{{ command == "hold" }}'
     sequence:
       - service: automation.turn_off
         target:

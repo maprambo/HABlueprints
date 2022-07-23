@@ -100,6 +100,7 @@ action:
 - variables:
     command: '{{ trigger.event.data.command }}'
     dataargs: '{{ trigger.event.data.args }}'
+    main_light: !input main_light
 - choose:
   - conditions: '{{ command == "on" }}'
     sequence:

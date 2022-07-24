@@ -173,11 +173,11 @@ action:
         below: 20
       - condition: or
         conditions:
-        - "{{ not window_contacts }}"
+        - "{{ not window_contact }}"
         - condition: and
           conditions:
           - condition: state
-            entity_id: !input window_contacts
+            entity_id: !input window_contact
             state: "off"
       sequence:
       - service: scene.turn_on

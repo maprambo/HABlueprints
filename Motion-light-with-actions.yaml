@@ -137,6 +137,11 @@ variables:
 action:
   - choose:
     - conditions:
+# Run the given actions `sequence_turn_on_light` when motion is detected and it is dark.
+      - condition: or
+        conditions:
+        - "{{ trigger.id == 'motion_detected' }}"
+        - "{{ trigger.id == 'darkness_on' }}"     # Also turn on light when it gets dark meanwhile present
       - condition: state
         entity_id: !input darkness
         state: "on"
@@ -152,37 +157,6 @@ action:
         - condition: state
           entity_id: !input window_contact
           state: "off"
-      sequence:
-        - variables:
-            target_state: 'on'
-    - conditions:
-      - condition: state
-        entity_id: !input darkness
-        state: "on"
-      - condition: not
-        conditions:
-        - condition: state
-          entity_id: !input motion_sensor
-          state: "off"                            # Check presence int the last given minutes
-          for: !input duration_turn_off_lights
-      - "{{ not not window_contact }}"
-      - condition: state
-        entity_id: !input window_contact
-        state: "on"
-      sequence:
-        - variables:
-            target_state: 'dim_insect'
-    default:
-      - variables:
-          target_state: 'off'
-  - choose:
-    - conditions:
-# Run the given actions `sequence_turn_on_light` when motion is detected and it is dark.
-      - condition: or
-        conditions:
-        - "{{ trigger.id == 'motion_detected' }}"
-        - "{{ trigger.id == 'darkness_on' }}"     # Also turn on light when it gets dark meanwhile present
-      - "{{ target_state == 'on' }}"
       - condition: state                        # Don't run the actions, when a specific light scene is already set
         entity_id: !input main_light
         state: "off"
@@ -197,6 +171,14 @@ action:
         entity_id: !input main_light
         attribute: "brightness"
         below: 20
+      - condition: or
+        conditions:
+        - "{{ not window_contacts }}"
+        - condition: and
+          conditions:
+          - condition: state
+            entity_id: !input window_contacts
+            state: "off"
       sequence:
       - service: scene.turn_on
         target:
@@ -212,7 +194,21 @@ action:
         - "{{ trigger.id == 'no_motion_detected' }}"
         - "{{ trigger.id == 'darkness_off' }}"
         - "{{ trigger.id == 'automation_active_on' }}" # Turn off the light if automation is turned on                  
-      - "{{ target_state == 'off' }}"
+      - condition: or
+        conditions:
+        - condition: state
+          entity_id: !input darkness
+          state: "off"
+        - condition: state
+          entity_id: !input motion_sensor
+          state: "off"                            # Check presence int the last given minutes
+          for: !input duration_turn_off_lights
+        - condition: and
+          conditions:
+          - "{{ not not window_contact }}"
+          - condition: state
+            entity_id: !input window_contact
+            state: "on"
       - condition: state
         entity_id: !input automation_active
         state: "on"
@@ -239,7 +235,21 @@ action:
 # Turn on the automation if the light is turned off in brightness
     - conditions:
       - "{{ trigger.id == 'light_turned_off' }}"
-      - "{{ target_state == 'off' }}"
+      - condition: or
+        conditions:
+        - condition: state
+          entity_id: !input darkness
+          state: "off"
+        - condition: state
+          entity_id: !input motion_sensor
+          state: "off"                            # Check presence int the last given minutes
+          for: !input duration_turn_off_lights
+        - condition: and
+          conditions:
+          - "{{ not not window_contact }}"
+          - condition: state
+            entity_id: !input window_contact
+            state: "on"
       sequence:
       - service: input_boolean.turn_on
         target:
@@ -247,7 +257,15 @@ action:
 # Turn off the automation if the light is turned off despite motion and darkness
     - conditions:
       - "{{ trigger.id == 'light_turned_off' }}"
-      - "{{ target_state != 'off' }}"
+      - condition: state
+        entity_id: !input darkness
+        state: "on"
+      - condition: not
+        conditions:
+        - condition: state
+          entity_id: !input motion_sensor
+          state: "off"                            # Check presence int the last given minutes
+          for: !input duration_turn_off_lights
       - condition: state                          # When it's dark, but not triggered by darkness
         entity_id: !input darkness
         state: "on"

@@ -238,12 +238,12 @@ action:
                 entity_id: !input main_light
                 attribute: color_mode
                 state: color_temp
-              - " {{ state_attr(main_light, 'color_temp') - 10 >= state_attr(main_light, 'min_mireds') }} "
+              - " {{ state_attr(main_light, 'color_temp') - 25 >= state_attr(main_light, 'min_mireds') }} "
               sequence:
               - service: light.turn_on
                 target: !input target_light
                 data:
-                  color_temp: " {{ (state_attr(main_light, 'color_temp') - 10) | int }} "
+                  color_temp: " {{ (state_attr(main_light, 'color_temp') - 25) | int }} "
                   transition: 1
 # - HS-Modus: langwelliger
             - conditions:
@@ -279,7 +279,7 @@ action:
                 entity_id: !input main_light
                 attribute: color_mode
                 state: color_temp
-              - " {{ state_attr(main_light, 'color_temp') - 10 < state_attr(main_light, 'min_mireds') }} "
+              - " {{ state_attr(main_light, 'color_temp') - 25 < state_attr(main_light, 'min_mireds') }} "
               sequence:
               - service: light.turn_on
                 target: !input target_light
@@ -305,12 +305,12 @@ action:
                 entity_id: !input main_light
                 attribute: color_mode
                 state: color_temp
-              - " {{ state_attr(main_light, 'color_temp') + 10 <= state_attr(main_light, 'max_mireds') }} "
+              - " {{ state_attr(main_light, 'color_temp') + 25 <= state_attr(main_light, 'max_mireds') }} "
               sequence:
               - service: light.turn_on
                 target: !input target_light
                 data:
-                  color_temp: " {{ (state_attr(main_light, 'color_temp') + 10) | int }} "
+                  color_temp: " {{ (state_attr(main_light, 'color_temp') + 25) | int }} "
                   transition: 1
 # - HS-Modus: kurzwelliger
             - conditions:
@@ -346,7 +346,7 @@ action:
                 entity_id: !input main_light
                 attribute: color_mode
                 state: color_temp
-              - " {{ state_attr(main_light, 'color_temp') + 10 > state_attr(main_light, 'max_mireds') }} "
+              - " {{ state_attr(main_light, 'color_temp') + 25 > state_attr(main_light, 'max_mireds') }} "
               sequence:
               - service: light.turn_on
                 target: !input target_light

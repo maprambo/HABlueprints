@@ -167,15 +167,10 @@ action:
     - conditions:
 # Revert the light when window closes
       - "{{ trigger.id == 'window_closes' }}"
-      - condition: or
-        conditions:
-        - condition: state
-          entity_id: !input main_light
-          state: "off"
-        - condition: numeric_state                      # As long as it's the insect light or at least dark
-          entity_id: !input main_light
-          attribute: "brightness"
-          below: 20
+      - condition: numeric_state                      # As long as it's the insect light or at least dark
+        entity_id: !input main_light
+        attribute: "brightness"
+        below: 20
       - condition: or
         conditions:
         - "{{ not window_contact }}"

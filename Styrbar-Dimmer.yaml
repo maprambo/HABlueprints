@@ -134,8 +134,8 @@ action:
       default:
       - service: light.turn_on
         target: !input 'target_light'
-        data:
-          transition: 1
+#        data:
+#          transition: 1
 # 1. Licht ausschalten
   - conditions: '{{ command == "off" }}'
     sequence:

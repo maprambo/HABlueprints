@@ -176,7 +176,7 @@ action:
           entity_id: !input main_light
           attribute: "brightness"
           below: 20
-      sequence: !input sequence_turn_on_light
+      sequence:
       - condition: or
         conditions:
         - "{{ not window_contact }}"
@@ -185,7 +185,6 @@ action:
           - condition: state
             entity_id: !input window_contact
             state: "off"
-      sequence:
       - service: scene.turn_on
         target:
           entity_id: "scene.snaphot_{{ this.entity_id.split('.')[1] }}"
@@ -204,6 +203,18 @@ action:
               entity_id: !input main_light
               attribute: "brightness"
               below: 20
+          - condition: state
+            entity_id: !input darkness
+            state: "on"
+          - condition: not
+            conditions:
+            - condition: state
+              entity_id: !input motion_sensor
+              state: "off"                            # Check presence int the last given minutes
+              for: !input duration_turn_off_lights
+          - condition: state
+            entity_id: !input automation_active
+            state: "on"
           sequence: !input sequence_turn_on_light
     - conditions:
 # Turn off the light when it gets bright or the motion is not detected no more

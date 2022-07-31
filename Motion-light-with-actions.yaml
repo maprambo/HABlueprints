@@ -167,10 +167,16 @@ action:
     - conditions:
 # Revert the light when window closes
       - "{{ trigger.id == 'window_closes' }}"
-      - condition: numeric_state                      # As long as it's the insect light or at least dark
-        entity_id: !input main_light
-        attribute: "brightness"
-        below: 20
+      - condition: or
+        conditions:
+        - condition: state
+          entity_id: !input main_light
+          state: "off"
+        - condition: numeric_state                      # As long as it's the insect light or at least dark
+          entity_id: !input main_light
+          attribute: "brightness"
+          below: 20
+      sequence: !input sequence_turn_on_light
       - condition: or
         conditions:
         - "{{ not window_contact }}"
@@ -187,6 +193,18 @@ action:
       - service: scene.turn_on
         target:
           entity_id: "scene.snaphot_{{ this.entity_id.split('.')[1] }}"
+      - choose:
+        - conditions:
+          - condition: or
+            conditions:
+            - condition: state
+              entity_id: !input main_light
+              state: "off"
+            - condition: numeric_state                      # As long as it's the insect light or at least dark
+              entity_id: !input main_light
+              attribute: "brightness"
+              below: 20
+          sequence: !input sequence_turn_on_light
     - conditions:
 # Turn off the light when it gets bright or the motion is not detected no more
       - condition: or

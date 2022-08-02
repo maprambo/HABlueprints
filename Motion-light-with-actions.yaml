@@ -176,6 +176,9 @@ action:
           entity_id: !input main_light
           attribute: "brightness"
           below: 20
+      - condition: state
+        entity_id: !input darkness
+        state: "on"
       sequence:
       - condition: or
         conditions:

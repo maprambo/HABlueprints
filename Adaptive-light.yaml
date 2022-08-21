@@ -2,67 +2,68 @@ blueprint:
   name: "Adaptive Lighting"
   domain: automation
   description: "Light to follow natural cycle"
-inputs:
-  sunrise_time:
-    name: "Sunrise time"
-    selector:
-      time:
-  sunset_time:
-    name: "Sunset time"
-    selector:
-      time:
-  lights:
-    name: "Target lights"
-    selector:
-      entity:
-        domain: light
-        multiple: true
-  brightness_midday:
-    name: "Brightness at midday"
-    selector:
-      number:
-        min: 0
-        max: 100
-        unit_of_measurement: "%"
-        mode: slider
-        step: 1
-  brightness_midnight:
-    name: "Brightness at midnight"
-    selector:
-      number:
-        min: 0
-        max: 100
-        unit_of_measurement: "%"
-        mode: slider
-        step: 1
-  temperature_midday:
-    name: "Temperature at midday"
-    selector:
-      number:
-        min: 2000
-        max: 6500
-        unit_of_measurement: "Kelvin"
-        mode: slider
-        step: 100
-  temperature_midnight:
-    name: "Temperature at midnight"
-    selector:
-      number:
-        min: 2000
-        max: 6500
-        unit_of_measurement: "Kelvin"
-        mode: slider
-        step: 100
-  brightness_factor:
-    name: "Brightness factor"
-    description: "Factor for brightness throughout the day"
-    selector:
-      number:
-        min: 1.0
-        max: 3.0
-        mode: slider
-        step: 0.01
-        default: 1.05
+  input:
+    sunrise_time:
+      name: "Sunrise time"
+      selector:
+        time:
+    sunset_time:
+      name: "Sunset time"
+      selector:
+        time:
+    lights:
+      name: "Target lights"
+      selector:
+        entity:
+          domain: light
+          multiple: true
+    brightness_midday:
+      name: "Brightness at midday"
+      selector:
+        number:
+          min: 0
+          max: 100
+          unit_of_measurement: "%"
+          mode: slider
+          step: 1
+    brightness_midnight:
+      name: "Brightness at midnight"
+      selector:
+        number:
+          min: 0
+          max: 100
+          unit_of_measurement: "%"
+          mode: slider
+          step: 1
+    temperature_midday:
+      name: "Temperature at midday"
+      selector:
+        number:
+          min: 2000
+          max: 6500
+          unit_of_measurement: "Kelvin"
+          mode: slider
+          step: 100
+    temperature_midnight:
+      name: "Temperature at midnight"
+      selector:
+        number:
+          min: 2000
+          max: 6500
+          unit_of_measurement: "Kelvin"
+          mode: slider
+          step: 100
+    brightness_factor:
+      name: "Brightness factor"
+      description: "Factor for brightness throughout the day"
+      selector:
+        number:
+          min: 1.0
+          max: 3.0
+          mode: slider
+          step: 0.01
+          default: 1.05
+mode: restart
 trigger:
   - id: "time_pattern"
     platform: time_pattern

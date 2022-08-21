@@ -115,8 +115,10 @@ variables:
     {%- set light_setting.temperature = (temperature_midnight - params.y * (temperature_midnight - temperature_midday)) | int %}
     {%- set light_setting_old.brightness = (params.y_old_product * (brightness_midday - brightness_midnight) + brightness_midnight) * 255 | int %}
     {%- set light_setting_old.temperature = (temperature_midnight - params.y_old * (temperature_midnight - temperature_midday)) | int %}
-    {{ { 'old': light_setting_old, 'current': light_setting } }}
+    {{ { 'old': {'brightness': light_setting_old.brightness, 'temperature': light_setting_old.temperature},
+    'current': {'brightness': light_setting.brightness, 'temperature': light_setting.temperature} } | to_json }}
   targets: >
+    {%- set light_setting = light_setting | from_json %}
     {%- set targets = lights %}
     {%- set target_entities = namespace(brightness=[], temperature=[]) %}
     {%- set targets = [targets] if targets is string else targets %}
@@ -130,7 +132,7 @@ variables:
     {%- endif %}
     {%- endif %}
     {%- endfor %}
-    {{ target_entities }}
+    {{ {'brightness': target_entities.brightness, 'temperature': target_entities.temperature} | to_json }}
 action:
 - choose:
   - conditions:
@@ -144,14 +146,14 @@ action:
       data:
         transition: 10
       data_template:
-        brightness: "{{ light_setting.current.brightness }}"
+        brightness: "{{ (light_setting | from_json).current.brightness }}"
       target:
         entity_id: "{{ targets.brightness }}"
     - service: light.turn_on
       data:
         transition: 10
       data_template:
-        color_temp: "{{ light_setting.current.temperature }}"
+        color_temp: "{{ (light_setting | from_json).current.temperature }}"
       target:
         entity_id: "{{ targets.temperature }}"
   default:
@@ -162,7 +164,7 @@ action:
           data:
             transition: 1
           data_template:
-            color_temp: "{{ light_setting.current.temperature }}"
-            brightness: "{{ light_setting.current.brightness }}"
+            color_temp: "{{ (light_setting | from_json).current.temperature }}"
+            brightness: "{{ (light_setting | from_json).current.brightness }}"
           target:
             entity_id: !input lights

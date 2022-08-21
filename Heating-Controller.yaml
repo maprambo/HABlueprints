@@ -130,9 +130,10 @@ action:
       - condition: or
         conditions:
         - "{{ program == 'off' }}"
-        - platform: state
+        - condition: state
           entity_id: !input window_contact
           state: "on"
+          match: "any"
       - choose:
         - conditions:
           - condition: state

@@ -212,7 +212,7 @@ action:
           data_template:
             color_temp: "{{ light_setting_current_temperature }}"
           target:
-            entity_id: "{{ targets_temperature }}"
+            entity_id: "{{ trigger.event.data.service_data.entity_id }}"
   - conditions: "{{ trigger.idx == 'Test' }}"
     sequence:
     - repeat:

@@ -88,7 +88,7 @@ action:
     params_x_sunrise: "{{ (today_at(sunrise) - today_at('00:00:00')).seconds / (24*60*60) }}"
     params_meridian: "{{ params_x_sunrise + (params_day_length / 2) }}"
     params_x: "{{ (now() - today_at('00:00:00')).seconds / (24*60*60) }}"
-    params_x_old: "{{ params.x - (interval_sec / (24*60*60)) }}"
+    params_x_old: "{{ params_x - (interval_sec / (24*60*60)) }}"
     params_c: "{{ -0.5 * cos(2*pi*(params_day_length/2)) }}"
     params_y: "{{ 0.5 * cos(2*pi*(params_x - params_meridian)) + params_c + 0.5 }}"
     params_y_old: "{{ 0.5 * cos(2*pi*(params_x_old - params_meridian)) + params_c + 0.5 }}"

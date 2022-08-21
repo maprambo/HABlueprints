@@ -109,11 +109,11 @@ action:
 - variables:
     params_y_old_product: "{{ params_y_old_product if params_y_old_product < 1 else 1 }}"
 - variables:
-    light_setting_current_brightness: "{{ (params_y_product * (brightness_midday - brightness_midnight) + brightness_midnight) * 255 | int }}"
+    light_setting_current_brightness: "{{ (params_y_product * (brightness_midday - brightness_midnight) + brightness_midnight) / 100 * 255 | int }}"
 - variables:
     light_setting_current_temperature: "{{ (temperature_midnight - params_y * (temperature_midnight - temperature_midday)) | int }}"
 - variables:
-    light_setting_old_brightness: "{{ (params_y_old_product * (brightness_midday - brightness_midnight) + brightness_midnight) * 255 | int }}"
+    light_setting_old_brightness: "{{ (params_y_old_product * (brightness_midday - brightness_midnight) + brightness_midnight) / 100 * 255 | int }}"
 - variables:
     light_setting_old_temperature: "{{ (temperature_midnight - params_y_old * (temperature_midnight - temperature_midday)) | int }}"
 - variables:

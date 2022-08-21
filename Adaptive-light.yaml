@@ -86,22 +86,18 @@ variables:
     {%- set sunset = sunset_time %}
     {%- set brightness_factor = brightness_factor %}
     {%- set interval_sec = 60 %}
-    
     {%- set params = namespace(x=0,c=0,y=0,y_product=0,x_old=0,y_old=0,y_old_product=0) %}
     {%- set light_setting = namespace(brightness=0,temperature=0) %}
     {%- set light_setting_old = namespace(brightness=0,temperature=0) %}
-    
     {%- set params.day_length = (today_at(sunset) - today_at(sunrise)).seconds / (24*60*60) %}
     {%- set params.x_sunrise = (today_at(sunrise) - today_at('00:00:00')).seconds / (24*60*60) %}
     {%- set params.meridian = params.x_sunrise + (params.day_length / 2) %}
-    
     {%- set params.x = (now() - today_at('00:00:00')).seconds / (24*60*60) %}
     {%- set params.x_old = params.x - (interval_sec / (24*60*60)) %}
     {#%- set params.x = (today_at('12:30:00') - today_at('00:00:00')).seconds / (24*60*60) %#}
     {%- set params.c = -0.5 * cos(2*pi*(params.day_length/2)) %}
     {%- set params.y = 0.5 * cos(2*pi*(params.x - params.meridian)) + params.c + 0.5 %}
     {%- set params.y_old = 0.5 * cos(2*pi*(params.x_old - params.meridian)) + params.c + 0.5 %}
-    
     {%- set params.y = params.y if params.y > 0 else 0 %}
     {%- set params.y = params.y if params.y < 1 else 1 %}
     {%- set params.y_product = params.y * brightness_factor %}
@@ -110,7 +106,6 @@ variables:
     {%- set params.y_old = params.y_old if params.y_old < 1 else 1 %}
     {%- set params.y_old_product = params.y_old * brightness_factor %}
     {%- set params.y_old_product = params.y_old_product if params.y_old_product < 1 else 1 %}
-    
     {%- set light_setting.brightness = (params.y_product * (brightness_midday - brightness_midnight) + brightness_midnight) * 255 | int %}
     {%- set light_setting.temperature = (temperature_midnight - params.y * (temperature_midnight - temperature_midday)) | int %}
     {%- set light_setting_old.brightness = (params.y_old_product * (brightness_midday - brightness_midnight) + brightness_midnight) * 255 | int %}

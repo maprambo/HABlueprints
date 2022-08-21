@@ -72,6 +72,12 @@ trigger:
   - id: "time_pattern"
     platform: time_pattern
     minutes: "/1"
+  - id: "light_turned_on"
+    platform: event
+    event_type: call_service
+    event_data:
+      domain: light
+      service: turn_on
 variables:
   lights: !input lights
   brightness_midday: !input brightness_midday
@@ -164,6 +170,45 @@ action:
         color_temp: "{{ light_setting_current_temperature }}"
       target:
         entity_id: "{{ targets_temperature }}"
+  - conditions:
+    - "{{ trigger.id == 'light_turned_on' }}"
+    - "{{ not trigger.event.data.service_data.white }}"
+    - "{{ not trigger.event.data.service_data.profile }}"
+    - "{{ not trigger.event.data.service_data.flash }}"
+    - "{{ not trigger.event.data.service_data.effect }}"
+    sequence:
+    - choose:
+      - conditions:
+        - "{{ not trigger.event.data.service_data.brightness }}"
+        - "{{ not trigger.event.data.service_data.brightness_pct }}"
+        - "{{ not trigger.event.data.service_data.brightness_step }}"
+        - "{{ not trigger.event.data.service_data.brightness_step_pct }}"
+        sequence:
+        - service: light.turn_on
+           data:
+             transition: 0
+           data_template:
+             brightness: "{{ light_setting_current_brightness }}"
+           target:
+             entity_id: "{{ trigger.event.data.service_data.entity_id }}"
+      - conditions:
+        - "{{ not trigger.event.data.service_data.color_temp }}"
+        - "{{ not trigger.event.data.service_data.rgb_color }}"
+        - "{{ not trigger.event.data.service_data.rgbw_color }}"
+        - "{{ not trigger.event.data.service_data.rgbww_color }}"
+        - "{{ not trigger.event.data.service_data.color_name }}"
+        - "{{ not trigger.event.data.service_data.hs_color }}"
+        - "{{ not trigger.event.data.service_data.xy_color }}"
+        - "{{ not trigger.event.data.service_data.kelvin }}"
+        - "{{ not trigger.event.data.service_data.rgb_color }}"
+        sequence:
+        - service: light.turn_on
+          data:
+            transition: 0
+          data_template:
+            color_temp: "{{ light_setting_current_temperature }}"
+          target:
+            entity_id: "{{ targets_temperature }}"
   default:
     - repeat:
         count: 2
@@ -176,3 +221,4 @@ action:
             brightness: "{{ light_setting_current_brightness }}"
           target:
             entity_id: !input lights
+        - delay: 1

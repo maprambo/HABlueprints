@@ -84,7 +84,7 @@ variables:
   interval_sec: 60
   params_day_length: (today_at(sunset) - today_at(sunrise)).seconds / (24*60*60)
   params_x_sunrise: (today_at(sunrise) - today_at('00:00:00')).seconds / (24*60*60)
-  params_meridian: params.x_sunrise + (params.day_length / 2)
+  params_meridian: params_x_sunrise + (params_day_length / 2)
   params_x: (now() - today_at('00:00:00')).seconds / (24*60*60)
   params_x_old: params.x - (interval_sec / (24*60*60))
   params_c: -0.5 * cos(2*pi*(params_day_length/2))
@@ -102,7 +102,7 @@ variables:
   light_setting_current_temperature: (temperature_midnight - params_y * (temperature_midnight - temperature_midday)) | int
   light_setting_old_brightness: (params_y_old_product * (brightness_midday - brightness_midnight) + brightness_midnight) * 255 | int
   light_setting_old_temperature: (temperature_midnight - params_y_old * (temperature_midnight - temperature_midday)) | int
-  targets_brightness: >
+  targets_brightness: >-
     {%- set targets = lights %}
     {%- set targets = [targets] if targets is string else targets %}
     {%- for target in targets %}
@@ -116,7 +116,8 @@ variables:
     {%- endif %}
     {%- endfor %}
     {{ target_entities_brightness }}
-  targets_temperature: >
+
+  targets_temperature: >-
     {%- set targets = lights %}
     {%- set targets = [targets] if targets is string else targets %}
     {%- for target in targets %}
@@ -127,6 +128,7 @@ variables:
     {%- endif %}
     {%- endfor %}
     {{ target_entities_temperature }}
+
 action:
 - choose:
   - conditions:

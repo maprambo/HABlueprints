@@ -123,9 +123,9 @@ action:
 - variables:
     light_setting_old_temperature: "{{ (temperature_midnight - params_y_old * (temperature_midnight - temperature_midday)) | int }}"
 - variables:
+    targets: "{{ [lights] if lights is string else lights }}"
+- variables:
     targets_brightness: >-
-      {%- set targets = lights %}
-      {%- set targets = [targets] if targets is string else targets %}
       {%- set target_entities = namespace(brightness=[]) %}
       {%- for target in targets %}
       {%- if states(target) == 'on' %}
@@ -172,17 +172,24 @@ action:
         entity_id: "{{ targets_temperature }}"
   - conditions:
     - "{{ trigger.id == 'light_turned_on' }}"
-    - "{{ not trigger.event.data.service_data.white }}"
-    - "{{ not trigger.event.data.service_data.profile }}"
-    - "{{ not trigger.event.data.service_data.flash }}"
-    - "{{ not trigger.event.data.service_data.effect }}"
+    - "{{ trigger.event.data.service_data.entity_id is in targets }}"
+    - platform: not
+      conditions:
+      - platform: state
+        entity_id: "{{ trigger.event.data.service_data.entity_id }}"
+        state: "on"
+        for: "00:00:03"
+    - "{{ not 'white' is in trigger.event.data.service_data }}"
+    - "{{ not 'profile' is in trigger.event.data.service_data }}"
+    - "{{ not 'flash' is in trigger.event.data.service_data }}"
+    - "{{ not 'effect' is in trigger.event.data.service_data }}"
     sequence:
     - choose:
       - conditions:
-        - "{{ not trigger.event.data.service_data.brightness }}"
-        - "{{ not trigger.event.data.service_data.brightness_pct }}"
-        - "{{ not trigger.event.data.service_data.brightness_step }}"
-        - "{{ not trigger.event.data.service_data.brightness_step_pct }}"
+        - "{{ not 'brightness' is in trigger.event.data.service_data }}"
+        - "{{ not 'brightness_pct' is in trigger.event.data.service_data }}"
+        - "{{ not 'brightness_step' is in trigger.event.data.service_data }}"
+        - "{{ not 'brightness_step_pct' is in trigger.event.data.service_data }}"
         sequence:
         - service: light.turn_on
           data:
@@ -192,15 +199,15 @@ action:
           target:
             entity_id: "{{ trigger.event.data.service_data.entity_id }}"
       - conditions:
-        - "{{ not trigger.event.data.service_data.color_temp }}"
-        - "{{ not trigger.event.data.service_data.rgb_color }}"
-        - "{{ not trigger.event.data.service_data.rgbw_color }}"
-        - "{{ not trigger.event.data.service_data.rgbww_color }}"
-        - "{{ not trigger.event.data.service_data.color_name }}"
-        - "{{ not trigger.event.data.service_data.hs_color }}"
-        - "{{ not trigger.event.data.service_data.xy_color }}"
-        - "{{ not trigger.event.data.service_data.kelvin }}"
-        - "{{ not trigger.event.data.service_data.rgb_color }}"
+        - "{{ not 'color_temp' is in trigger.event.data.service_data }}"
+        - "{{ not 'rgb_color' is in trigger.event.data.service_data }}"
+        - "{{ not 'rgbw_color' is in trigger.event.data.service_data }}"
+        - "{{ not 'rgbww_color' is in trigger.event.data.service_data }}"
+        - "{{ not 'color_name' is in trigger.event.data.service_data }}"
+        - "{{ not 'hs_color' is in trigger.event.data.service_data }}"
+        - "{{ not 'xy_color' is in trigger.event.data.service_data }}"
+        - "{{ not 'kelvin' is in trigger.event.data.service_data }}"
+        - "{{ not 'rgb_color' is in trigger.event.data.service_data }}"
         sequence:
         - service: light.turn_on
           data:

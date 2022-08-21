@@ -67,7 +67,8 @@ blueprint:
           mode: slider
           step: 0.01
       default: 1.05
-mode: restart
+mode: queued
+max: 10
 trigger:
   - id: "time_pattern"
     platform: time_pattern
@@ -211,7 +212,8 @@ action:
             color_temp: "{{ light_setting_current_temperature }}"
           target:
             entity_id: "{{ targets_temperature }}"
-  default:
+  - conditions: "{{ trigger.idx == 'Test' }}"
+    sequence:
     - repeat:
         count: 2
         sequence:

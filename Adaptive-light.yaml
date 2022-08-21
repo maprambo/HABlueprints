@@ -173,12 +173,7 @@ action:
   - conditions:
     - "{{ trigger.id == 'light_turned_on' }}"
     - "{{ trigger.event.data.service_data.entity_id is in targets }}"
-    - condition: not
-      conditions:
-      - condition: state
-        entity_id: "{{ trigger.event.data.service_data.entity_id }}"
-        state: "on"
-        for: "00:00:03"
+    - "{{ states(trigger.event.data.service_data.entity_id) == 'off' or (now() - states[trigger.event.data.service_data.entity_id].last_changed).seconds > 3 }}"
     - "{{ not 'white' is in trigger.event.data.service_data }}"
     - "{{ not 'profile' is in trigger.event.data.service_data }}"
     - "{{ not 'flash' is in trigger.event.data.service_data }}"

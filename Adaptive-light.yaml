@@ -194,6 +194,7 @@ action:
             brightness: "{{ light_setting_current_brightness }}"
           target:
             entity_id: "{{ trigger.event.data.service_data.entity_id }}"
+    - choose:
       - conditions:
         - "{{ not 'color_temp' is in trigger.event.data.service_data }}"
         - "{{ not 'rgb_color' is in trigger.event.data.service_data }}"

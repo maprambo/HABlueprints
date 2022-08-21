@@ -105,29 +105,28 @@ variables:
   targets_brightness: >-
     {%- set targets = lights %}
     {%- set targets = [targets] if targets is string else targets %}
+    {%- set target_entities = namespace(brightness=[]) %}
     {%- for target in targets %}
     {%- if states(target) == 'on' %}
     {%- if not not state_attr(target, 'brightness') and state_attr(target, 'brightness') > light_setting_old_brightness - 1 and state_attr(target, 'brightness') < light_setting_current_brightness + 1 %}
-    {%- set target_entities_brightness = target_entities_brightness + [target] %}
-    {%- endif %}
-    {%- if not not state_attr(target, 'color_temp') and state_attr(target, 'color_temp') > light_setting_old_temperature - 1 and state_attr(target, 'color_temp') < light_setting_current_temperature + 1 %}
-    {%- set target_entities_temperature = target_entities_temperature + [target] %}
+    {%- set target_entities.brightness = target_entities.brightness + [target] %}
     {%- endif %}
     {%- endif %}
     {%- endfor %}
-    {{ target_entities_brightness }}
+    {{ target_entities.brightness }}
 
   targets_temperature: >-
     {%- set targets = lights %}
     {%- set targets = [targets] if targets is string else targets %}
+    {%- set target_entities = namespace(temperature=[]) %}
     {%- for target in targets %}
     {%- if states(target) == 'on' %}
     {%- if not not state_attr(target, 'color_temp') and state_attr(target, 'color_temp') > light_setting_old_temperature - 1 and state_attr(target, 'color_temp') < light_setting_current_temperature + 1 %}
-    {%- set target_entities_temperature = target_entities_temperature + [target] %}
+    {%- set target_entities.temperature = target_entities.temperature + [target] %}
     {%- endif %}
     {%- endif %}
     {%- endfor %}
-    {{ target_entities_temperature }}
+    {{ target_entities.temperature }}
 
 action:
 - choose:

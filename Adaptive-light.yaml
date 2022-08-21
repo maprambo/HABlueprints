@@ -175,7 +175,7 @@ action:
     - "{{ trigger.event.data.service_data.entity_id is in targets }}"
     - platform: not
       conditions:
-      - platform: state
+      - condition: state
         entity_id: "{{ trigger.event.data.service_data.entity_id }}"
         state: "on"
         for: "00:00:03"

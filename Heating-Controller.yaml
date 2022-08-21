@@ -1,0 +1,198 @@
+blueprint:
+  name: "Heating controller"
+  description: "Sets the temperature to one or more heaters using input number entitites for temperatures, a dropdown selector, person entities and window contacts"
+  domain: automation
+  input:
+    heater:
+      name: "Climate entities"
+      selector:
+        entity:
+          domain: climate
+          multiple: true
+    day_temp_input:
+      name: "Day temperature"
+      description: "Input number entity for the day / normal temperature"
+      selector:
+        entity:
+          domain: input_number
+    night_temp_input:
+      name: "Night temperature"
+      description: "Input number entity for the night temperature"
+      selector:
+        entity:
+          domain: input_number
+    away_temp_input:
+      name: "Away temperature"
+      description: "Input number entity for the away temperature"
+      selector:
+        entity:
+          domain: input_number
+    program_dropdown:
+      name: "Program dropdown"
+      description: "Input select entity for the desired program. Values of this dropdown can be be 'day', 'night', 'away', 'off'."
+      selector:
+        entity:
+          domain: input_select
+    window_contact:
+      name: "Window contacts"
+      selector:
+        entity:
+          domain: binary_sensor
+          multiple: true
+      default: []
+    people:
+      name: "People"
+      description: "if not all listed people have the status 'home', the heater turns off"
+      selector:
+        entity:
+          domain: person
+          multiple: true
+    sun_delta:
+      name: "Temperature delta"
+      description: "A temperature delta input number e.g. caluclated respecting the weather report"
+      selector:
+        entity:
+          domain: input_number
+      default: {}
+mode: queued
+trigger:
+  - id: "day_temp_change"
+    platform: state
+    entity_id: !input day_temp_input
+  - id: "night_temp_change"
+    platform: state
+    entity_id: !input night_temp_input
+  - id: "away_temp_change"
+    platform: state
+    entity_id: !input away_temp_input
+  - id: "program_change"
+    platform: state
+    entity_id: !input program_dropdown
+    for: "00:00:03"
+  - id: "window_opens"
+    platform: state
+    entity_id: !input window_contact
+    from: "off"
+    to: "on"
+  - id: "window_closes"
+    platform: state
+    entity_id: !input window_contact
+    from: "on"
+    to: "off"
+  - id: "delta_change"
+    platform: state
+    entity_id: !input sun_delta
+  - id: "home_state"
+    platform: state
+    entity_id: !input people
+  - id: "time_pattern"
+    platform: time_pattern
+    minutes: "/5"
+variables:
+  sun_delta_input: !input sun_delta
+  day_temp_input: !input day_temp_input
+  night_temp_input: !input night_temp_input
+  away_temp_input: !input away_temp_input
+  sun_delta_temp: "{{ states(sun_delta_input) }}"
+  day_temp: "{{ states(day_temp_input) }}"
+  night_temp: "{{ states(night_temp_input) }}"
+  away_temp: "{{ states(away_temp_input) }}"
+  program_dropdown: !input program_dropdown
+  program: "{{ states(program_dropdown).lower() }}"
+  target_temp: >
+    {%- set temp = namespace(target=0) %}
+    {%- if program == 'day' %}
+      {%- set temp.target = day_temp %}
+    {%- elif program == 'night' %}
+      {%- set temp.target = night_temp %}
+    {%- elif program == 'away' %}
+      {%- set temp.target = away_temp %}
+    {%- endif %}
+    {%- if sun_delta_input %}
+      {%- set temp.target = temp.target + sun_delta_temp %}
+      {%- if temp.target < away_temp %}
+        {%- set temp.target = away_temp %}
+      {%- endif %}
+    {%- endif %}
+    {{- temp.target }}
+action:
+  - choose:
+    - conditions:
+      - condition: or
+        conditions:
+        - condition: and
+          conditions:
+          - "{{ trigger.id == 'program_change' }}"
+          - "{{ program == 'off' }}"
+        - "{{ trigger.id == 'window_opens' }}"
+        - "{{ trigger.id == 'time_pattern' }}"
+      sequence:
+      - condition: or
+        conditions:
+        - "{{ program == 'off' }}"
+        - platform: state
+          entity_id: !input window_contact
+          state: "on"
+      - choose:
+        - conditions:
+          - condition: state
+            entity_id: !input heater
+            state: "heat"
+          sequence:
+          - service: climate.set_temperature
+            target:
+              entity_id: !input heater
+            data_template:
+              temperature: 5.0
+          - delay:
+              milliseconds: 10000
+      - service: climate.turn_off
+        target:
+          entity_id: !input heater
+      - delay:
+          milliseconds: 10000
+    - conditions:
+      - condition: or
+        conditions:
+        - "{{ trigger.id == 'day_temp_change' }}"
+        - "{{ trigger.id == 'night_temp_change' }}"
+        - "{{ trigger.id == 'away_temp_change' }}"
+        - "{{ trigger.id == 'program_change' }}"
+        - "{{ trigger.id == 'window_closes' }}"
+        - "{{ trigger.id == 'delta_change' }}"
+        - "{{ trigger.id == 'home_state' }}"
+      - condition: state
+        entity_id: !input window_contact
+        state: "off"
+      - "{{ program != 'off' }}"
+      sequence:
+      - choose:
+        - conditions:
+          - condition: state
+            entity_id: !input heater
+            state: "off"
+          sequence:
+            - service: climate.turn_on
+              target:
+                entity_id: !input heater
+            - delay:
+                milliseconds: 10000
+      - choose:
+        - conditions:
+          - condition: state
+            entity_id: !input people
+            state: "not_home"
+          sequence:
+          - service: climate.set_temperature
+            target:
+              entity_id: !input heater
+            data_template:
+              temperature: !input away_temp_input
+        default:
+        - service: climate.set_temperature
+          target:
+            entity_id: !input heater
+          data_template:
+            temperature: '{{ target_temp }}'
+      - delay:
+          milliseconds: 10000

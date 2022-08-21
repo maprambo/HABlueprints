@@ -1,0 +1,163 @@
+blueprint:
+  name: "Adaptive Lighting"
+  domain: automation
+  description: "Light to follow natural cycle"
+inputs:
+  sunrise_time:
+    name: "Sunrise time"
+    selector:
+      time:
+  sunset_time:
+    name: "Sunset time"
+    selector:
+      time:
+  lights:
+    name: "Target lights"
+    selector:
+      entity:
+        domain: light
+        multiple: true
+  brightness_midday:
+    name: "Brightness at midday"
+    selector:
+      number:
+        min: 0
+        max: 100
+        unit_of_measurement: "%"
+        mode: slider
+        step: 1
+  brightness_midnight:
+    name: "Brightness at midnight"
+    selector:
+      number:
+        min: 0
+        max: 100
+        unit_of_measurement: "%"
+        mode: slider
+        step: 1
+  temperature_midday:
+    name: "Temperature at midday"
+    selector:
+      number:
+        min: 2000
+        max: 6500
+        unit_of_measurement: "Kelvin"
+        mode: slider
+        step: 100
+  temperature_midnight:
+    name: "Temperature at midnight"
+    selector:
+      number:
+        min: 2000
+        max: 6500
+        unit_of_measurement: "Kelvin"
+        mode: slider
+        step: 100
+  brightness_factor:
+    name: "Brightness factor"
+    description: "Factor for brightness throughout the day"
+    selector:
+      number:
+        min: 1.0
+        max: 3.0
+        mode: slider
+        step: 0.01
+        default: 1.05
+trigger:
+  - id: "time_pattern"
+    platform: time_pattern
+    minutes: "/1"
+variables:
+  lights: !input lights
+  brightness_midday: !input brightness_midday
+  brightness_midnight: !input brightness_midnight
+  temperature_midday: !input temperature_midday
+  temperature_midnight: !input temperature_midnight
+  sunrise_time: !input sunrise_time
+  sunset_time: !input sunset_time
+  brightness_factor: !input brightness_factor
+  light_setting: >
+    {%- set sunrise = sunrise_time %}
+    {%- set sunset = sunset_time %}
+    {%- set brightness_factor = brightness_factor %}
+    {%- set interval_sec = 60 %}
+    
+    {%- set params = namespace(x=0,c=0,y=0,y_product=0,x_old=0,y_old=0,y_old_product=0) %}
+    {%- set light_setting = namespace(brightness=0,temperature=0) %}
+    {%- set light_setting_old = namespace(brightness=0,temperature=0) %}
+    
+    {%- set params.day_length = (today_at(sunset) - today_at(sunrise)).seconds / (24*60*60) %}
+    {%- set params.x_sunrise = (today_at(sunrise) - today_at('00:00:00')).seconds / (24*60*60) %}
+    {%- set params.meridian = params.x_sunrise + (params.day_length / 2) %}
+    
+    {%- set params.x = (now() - today_at('00:00:00')).seconds / (24*60*60) %}
+    {%- set params.x_old = params.x - (interval_sec / (24*60*60)) %}
+    {#%- set params.x = (today_at('12:30:00') - today_at('00:00:00')).seconds / (24*60*60) %#}
+    {%- set params.c = -0.5 * cos(2*pi*(params.day_length/2)) %}
+    {%- set params.y = 0.5 * cos(2*pi*(params.x - params.meridian)) + params.c + 0.5 %}
+    {%- set params.y_old = 0.5 * cos(2*pi*(params.x_old - params.meridian)) + params.c + 0.5 %}
+    
+    {%- set params.y = params.y if params.y > 0 else 0 %}
+    {%- set params.y = params.y if params.y < 1 else 1 %}
+    {%- set params.y_product = params.y * brightness_factor %}
+    {%- set params.y_product = params.y_product if params.y_product < 1 else 1 %}
+    {%- set params.y_old = params.y_old if params.y_old > 0 else 0 %}
+    {%- set params.y_old = params.y_old if params.y_old < 1 else 1 %}
+    {%- set params.y_old_product = params.y_old * brightness_factor %}
+    {%- set params.y_old_product = params.y_old_product if params.y_old_product < 1 else 1 %}
+    
+    {%- set light_setting.brightness = (params.y_product * (brightness_midday - brightness_midnight) + brightness_midnight) * 255 | int %}
+    {%- set light_setting.temperature = (temperature_midnight - params.y * (temperature_midnight - temperature_midday)) | int %}
+    {%- set light_setting_old.brightness = (params.y_old_product * (brightness_midday - brightness_midnight) + brightness_midnight) * 255 | int %}
+    {%- set light_setting_old.temperature = (temperature_midnight - params.y_old * (temperature_midnight - temperature_midday)) | int %}
+    {{ { 'old': light_setting_old, 'current': light_setting } }}
+  targets: >
+    {%- set targets = lights %}
+    {%- set target_entities = namespace(brightness=[], temperature=[]) %}
+    {%- set targets = [targets] if targets is string else targets %}
+    {%- for target in targets %}
+    {%- if states(target) == 'on' %}
+    {%- if not not state_attr(target, 'brightness') and state_attr(target, 'brightness') > light_setting.old.brightness - 1 and state_attr(target, 'brightness') < light_setting.current.brightness + 1 %}
+    {%- set target_entities.brightness = target_entities.brightness + [target] %}
+    {%- endif %}
+    {%- if not not state_attr(target, 'color_temp') and 1000000 / state_attr(target, 'color_temp') - 1 > light_setting.old.temperature - 10 and 1000000 / state_attr(target, 'color_temp') < light_setting.current.temperature + 10 %}
+    {%- set target_entities.temperature = target_entities.temperature + [target] %}
+    {%- endif %}
+    {%- endif %}
+    {%- endfor %}
+    {{ target_entities }}
+action:
+- choose:
+  - conditions:
+    - condition: or
+      conditions:
+      - condition: and
+        conditions:
+        - "{{ trigger.id == 'time_pattern' }}"
+    sequence:
+    - service: light.turn_on
+      data:
+        transition: 10
+      data_template:
+        brightness: "{{ light_setting.current.brightness }}"
+      target:
+        entity_id: "{{ targets.brightness }}"
+    - service: light.turn_on
+      data:
+        transition: 10
+      data_template:
+        kelvin: "{{ light_setting.current.temperature }}"
+      target:
+        entity_id: "{{ targets.temperature }}"
+  default:
+    - repeat:
+        count: 2
+        sequence:
+        - service: light.turn_on
+          data:
+            transition: 1
+          data_template:
+            kelvin: "{{ light_setting.current.temperature }}"
+            brightness: "{{ light_setting.current.brightness }}"
+          target:
+            entity_id: !input lights

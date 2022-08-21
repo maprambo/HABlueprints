@@ -130,7 +130,7 @@ action:
       {%- set target_entities = namespace(brightness=[]) %}
       {%- for target in targets %}
       {%- if states(target) == 'on' %}
-      {%- if not not state_attr(target, 'brightness') and state_attr(target, 'brightness') > light_setting_old_brightness - 1 and state_attr(target, 'brightness') < light_setting_current_brightness + 1 %}
+      {%- if not not state_attr(target, 'brightness') and state_attr(target, 'color_mode') == 'color_temp' and state_attr(target, 'brightness') > light_setting_old_brightness - 1 and state_attr(target, 'brightness') < light_setting_current_brightness + 1 %}
       {%- set target_entities.brightness = target_entities.brightness + [target] %}
       {%- endif %}
       {%- endif %}
@@ -143,7 +143,7 @@ action:
       {%- set target_entities = namespace(temperature=[]) %}
       {%- for target in targets %}
       {%- if states(target) == 'on' %}
-      {%- if not not state_attr(target, 'color_temp') and state_attr(target, 'color_temp') > light_setting_old_temperature - 1 and state_attr(target, 'color_temp') < light_setting_current_temperature + 1 %}
+      {%- if not not state_attr(target, 'color_temp') and state_attr(target, 'color_mode') == 'color_temp' and state_attr(target, 'color_temp') > light_setting_old_temperature - 1 and state_attr(target, 'color_temp') < light_setting_current_temperature + 1 %}
       {%- set target_entities.temperature = target_entities.temperature + [target] %}
       {%- endif %}
       {%- endif %}
@@ -159,14 +159,14 @@ action:
     sequence:
     - service: light.turn_on
       data:
-        transition: 10
+        transition: 0
       data_template:
         brightness: "{{ light_setting_current_brightness }}"
       target:
         entity_id: "{{ targets_brightness }}"
     - service: light.turn_on
       data:
-        transition: 10
+        transition: 0
       data_template:
         color_temp: "{{ light_setting_current_temperature }}"
       target:

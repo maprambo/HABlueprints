@@ -222,7 +222,7 @@ action:
       target:
         entity_id: "{{ targets_service }}"
     - delay: 1
-  - conditions: "{{ trigger.idx == 'Test' }}"
+  - conditions: "{{ not trigger.idx }}"
     sequence:
     - repeat:
         count: 2

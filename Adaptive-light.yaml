@@ -161,7 +161,7 @@ action:
 
     targets_service: >-
       {%- set target_entities = namespace(service=[]) %}
-      {%- if not not trigger.event.data.service_data %}
+      {%- if not not trigger and not not trigger.event and not not trigger.event.data and not not trigger.event.data.service_data %}
         {%- set service_targets = trigger.event.data.service_data.entity_id %}
         {%- set service_targets = [service_targets] if service_targets is string else service_targets %}
         {%- for target in service_targets %}

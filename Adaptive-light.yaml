@@ -67,6 +67,16 @@ blueprint:
           mode: slider
           step: 0.01
       default: 1.05
+    brightness_minimum:
+      name: "Minimum brightness supported by lights"
+      selector:
+        number:
+          min: 0
+          max: 100
+          unit_of_measurement: "%"
+          mode: slider
+          step: 1
+      default: 0
 mode: single
 max_exceeded: silent
 trace:
@@ -90,6 +100,7 @@ variables:
   brightness_factor: !input brightness_factor
   sunrise: !input sunrise_time
   sunset: !input sunset_time
+  brightness_minimum: !input brightness_minimum
 action:
 - variables:
     interval_sec: 60
@@ -120,12 +131,13 @@ action:
     params_y_old_product: "{{ params_y_old_product if params_y_old_product < 1 else 1 }}"
 - variables:
     light_setting_current_brightness: "{{ ((params_y_product * (brightness_midday - brightness_midnight) + brightness_midnight) / 100 * 255) | int }}"
-- variables:
     light_setting_current_temperature: "{{ (temperature_midnight - params_y * (temperature_midnight - temperature_midday)) | int }}"
 - variables:
     light_setting_old_brightness: "{{ ((params_y_old_product * (brightness_midday - brightness_midnight) + brightness_midnight) / 100 * 255) | int }}"
-- variables:
     light_setting_old_temperature: "{{ (temperature_midnight - params_y_old * (temperature_midnight - temperature_midday)) | int }}"
+- variables:
+    light_setting_current_brightness: "{{ light_setting_current_brightness if light_setting_current_brightness > brightness_minimum else brightness_minimum}}"
+    light_setting_old_brightness: "{{ light_setting_old_brightness if light_setting_old_brightness > brightness_minimum else brightness_minimum}}"
 - variables:
     targets_brightness: >-
       {%- set target_entities = namespace(brightness=[]) %}
@@ -133,9 +145,9 @@ action:
       {%- if states(target) == 'on' %}
       {%- if not not state_attr(target, 'brightness') and state_attr(target, 'color_mode') == 'color_temp'
         and (
-          (state_attr(target, 'brightness') > light_setting_old_brightness - 1 and state_attr(target, 'brightness') < light_setting_current_brightness + 1) 
+          (state_attr(target, 'brightness') > light_setting_old_brightness - 5 and state_attr(target, 'brightness') < light_setting_current_brightness + 5) 
         or
-          (state_attr(target, 'brightness') < light_setting_old_brightness + 1 and state_attr(target, 'brightness') > light_setting_current_brightness - 1) 
+          (state_attr(target, 'brightness') < light_setting_old_brightness + 5 and state_attr(target, 'brightness') > light_setting_current_brightness - 5) 
       ) %}
       {%- set target_entities.brightness = target_entities.brightness + [target] %}
       {%- endif %}
@@ -149,9 +161,9 @@ action:
       {%- if states(target) == 'on' %}
       {%- if not not state_attr(target, 'color_temp') and state_attr(target, 'color_mode') == 'color_temp'
         and (
-          (state_attr(target, 'color_temp') > light_setting_old_temperature - 1 and state_attr(target, 'color_temp') < light_setting_current_temperature + 1)
+          (state_attr(target, 'color_temp') > light_setting_old_temperature - 5 and state_attr(target, 'color_temp') < light_setting_current_temperature + 5)
         or
-          (state_attr(target, 'color_temp') < light_setting_old_temperature + 1 and state_attr(target, 'color_temp') > light_setting_current_temperature - 1)
+          (state_attr(target, 'color_temp') < light_setting_old_temperature + 5 and state_attr(target, 'color_temp') > light_setting_current_temperature - 5)
       ) %}
       {%- set target_entities.temperature = target_entities.temperature + [target] %}
       {%- endif %}

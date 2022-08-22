@@ -162,13 +162,13 @@ action:
     targets_service: >-
       {%- set target_entities = namespace(service=[]) %}
       {%- if not not trigger.event.data.service_data %}
-      {%- set service_targets = trigger.event.data.service_data.entity_id %}
-      {%- set service_targets = [service_targets] if service_targets is string else service_targets %}
-      {%- for target in service_targets %}
-      {%- if target is in targets and (states(target) == 'off' or (now() - states[target].last_changed).seconds > 3)
-      {%- set target_entities.service = target_entities.service + [target] %}
-      {%- endif %}
-      {%- endfor %}
+        {%- set service_targets = trigger.event.data.service_data.entity_id %}
+        {%- set service_targets = [service_targets] if service_targets is string else service_targets %}
+        {%- for target in service_targets %}
+          {%- if target is in targets and (states(target) == 'off' or (now() - states[target].last_changed).seconds > 3) %}
+            {%- set target_entities.service = target_entities.service + [target] %}
+          {%- endif %}
+        {%- endfor %}
       {%- endif %}
       {{ target_entities.service }}
 - choose:

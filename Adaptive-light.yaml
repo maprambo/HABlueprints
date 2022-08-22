@@ -199,40 +199,28 @@ action:
     - "{{ not 'profile' is in trigger.event.data.service_data }}"
     - "{{ not 'flash' is in trigger.event.data.service_data }}"
     - "{{ not 'effect' is in trigger.event.data.service_data }}"
+    - "{{ not 'brightness' is in trigger.event.data.service_data }}"
+    - "{{ not 'brightness_pct' is in trigger.event.data.service_data }}"
+    - "{{ not 'brightness_step' is in trigger.event.data.service_data }}"
+    - "{{ not 'brightness_step_pct' is in trigger.event.data.service_data }}"
+    - "{{ not 'color_temp' is in trigger.event.data.service_data }}"
+    - "{{ not 'rgb_color' is in trigger.event.data.service_data }}"
+    - "{{ not 'rgbw_color' is in trigger.event.data.service_data }}"
+    - "{{ not 'rgbww_color' is in trigger.event.data.service_data }}"
+    - "{{ not 'color_name' is in trigger.event.data.service_data }}"
+    - "{{ not 'hs_color' is in trigger.event.data.service_data }}"
+    - "{{ not 'xy_color' is in trigger.event.data.service_data }}"
+    - "{{ not 'kelvin' is in trigger.event.data.service_data }}"
+    - "{{ not 'rgb_color' is in trigger.event.data.service_data }}"
     sequence:
-    - choose:
-      - conditions:
-        - "{{ not 'brightness' is in trigger.event.data.service_data }}"
-        - "{{ not 'brightness_pct' is in trigger.event.data.service_data }}"
-        - "{{ not 'brightness_step' is in trigger.event.data.service_data }}"
-        - "{{ not 'brightness_step_pct' is in trigger.event.data.service_data }}"
-        sequence:
-        - service: light.turn_on
-          data:
-            transition: "{{ trigger.event.data.service_data.transition if not not trigger.event.data.service_data.transition else 1 }}"
-          data_template:
-            brightness: "{{ light_setting_current_brightness }}"
-          target:
-            entity_id: "{{ targets_service }}"
-    - choose:
-      - conditions:
-        - "{{ not 'color_temp' is in trigger.event.data.service_data }}"
-        - "{{ not 'rgb_color' is in trigger.event.data.service_data }}"
-        - "{{ not 'rgbw_color' is in trigger.event.data.service_data }}"
-        - "{{ not 'rgbww_color' is in trigger.event.data.service_data }}"
-        - "{{ not 'color_name' is in trigger.event.data.service_data }}"
-        - "{{ not 'hs_color' is in trigger.event.data.service_data }}"
-        - "{{ not 'xy_color' is in trigger.event.data.service_data }}"
-        - "{{ not 'kelvin' is in trigger.event.data.service_data }}"
-        - "{{ not 'rgb_color' is in trigger.event.data.service_data }}"
-        sequence:
-        - service: light.turn_on
-          data:
-            transition: "{{ trigger.event.data.service_data.transition if not not trigger.event.data.service_data.transition else 1 }}"
-          data_template:
-            color_temp: "{{ light_setting_current_temperature }}"
-          target:
-            entity_id: "{{ targets_service }}"
+    - service: light.turn_on
+      data:
+        transition: "{{ trigger.event.data.service_data.transition if not not trigger.event.data.service_data.transition else 1 }}"
+      data_template:
+        brightness: "{{ light_setting_current_brightness }}"
+        color_temp: "{{ light_setting_current_temperature }}"
+      target:
+        entity_id: "{{ targets_service }}"
     - delay: 1
   - conditions: "{{ trigger.idx == 'Test' }}"
     sequence:

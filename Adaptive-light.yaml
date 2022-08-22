@@ -68,6 +68,9 @@ blueprint:
           step: 0.01
       default: 1.05
 mode: single
+max_exceeded: silent
+trace:
+  stored_traces: 10
 trigger:
   - id: "time_pattern"
     platform: time_pattern

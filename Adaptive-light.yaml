@@ -83,7 +83,6 @@ trigger:
       service: turn_on
 variables:
   lights: !input lights
-  targets: "{{ [lights] if lights is string else lights }}"
   brightness_midday: !input brightness_midday
   brightness_midnight: !input brightness_midnight
   temperature_midday: !input temperature_midday
@@ -102,6 +101,7 @@ action:
     params_c: "{{ -0.5 * cos(2*pi*(params_day_length/2)) }}"
     params_y: "{{ 0.5 * cos(2*pi*(params_x - params_meridian)) + params_c + 0.5 }}"
     params_y_old: "{{ 0.5 * cos(2*pi*(params_x_old - params_meridian)) + params_c + 0.5 }}"
+    targets: "{{ [lights] if lights is string else lights }}"
 - variables:
     params_y: "{{ params_y if params_y > 0 else 0 }}"
 - variables:
@@ -144,8 +144,6 @@ action:
       {{ target_entities.brightness }}
   
     targets_temperature: >-
-      {%- set targets = lights %}
-      {%- set targets = [targets] if targets is string else targets %}
       {%- set target_entities = namespace(temperature=[]) %}
       {%- for target in targets %}
       {%- if states(target) == 'on' %}
@@ -160,6 +158,19 @@ action:
       {%- endif %}
       {%- endfor %}
       {{ target_entities.temperature }}
+
+  targets_service: >-
+    {%- set target_entities = namespace(service=[]) %}
+    {%- if not not trigger.event.data.service_data %}
+    {%- set service_targets = trigger.event.data.service_data.entity_id %}
+    {%- set service_targets = [service_targets] if service_targets is string else service_targets %}
+    {%- for target in service_targets %}
+    {%- if target is in targets and (states(target) == 'off' or (now() - states[target].last_changed).seconds > 3)
+    {%- set target_entities.service = target_entities.service + [target] %}
+    {%- endif %}
+    {%- endfor %}
+    {%- endif %}
+    {{ target_entities.service }}
 - choose:
   - conditions:
     - condition: or
@@ -184,8 +195,6 @@ action:
         entity_id: "{{ targets_temperature }}"
   - conditions:
     - "{{ trigger.id == 'light_turned_on' }}"
-    - "{{ trigger.event.data.service_data.entity_id is in targets }}"
-    - "{{ states(trigger.event.data.service_data.entity_id) == 'off' or (now() - states[trigger.event.data.service_data.entity_id].last_changed).seconds > 3 }}"
     - "{{ not 'white' is in trigger.event.data.service_data }}"
     - "{{ not 'profile' is in trigger.event.data.service_data }}"
     - "{{ not 'flash' is in trigger.event.data.service_data }}"
@@ -200,7 +209,7 @@ action:
         sequence:
         - service: light.turn_on
           data:
-            transition: 0
+            transition: "{{ trigger.event.data.service_data.transition if not not trigger.event.data.service_data.transition else 1 }}"
           data_template:
             brightness: "{{ light_setting_current_brightness }}"
           target:
@@ -219,11 +228,11 @@ action:
         sequence:
         - service: light.turn_on
           data:
-            transition: 0
+            transition: "{{ trigger.event.data.service_data.transition if not not trigger.event.data.service_data.transition else 1 }}"
           data_template:
             color_temp: "{{ light_setting_current_temperature }}"
           target:
-            entity_id: "{{ trigger.event.data.service_data.entity_id }}"
+            entity_id: "{{ targets_service }}"
     - delay: 1
   - conditions: "{{ trigger.idx == 'Test' }}"
     sequence:

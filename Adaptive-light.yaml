@@ -159,18 +159,18 @@ action:
       {%- endfor %}
       {{ target_entities.temperature }}
 
-  targets_service: >-
-    {%- set target_entities = namespace(service=[]) %}
-    {%- if not not trigger.event.data.service_data %}
-    {%- set service_targets = trigger.event.data.service_data.entity_id %}
-    {%- set service_targets = [service_targets] if service_targets is string else service_targets %}
-    {%- for target in service_targets %}
-    {%- if target is in targets and (states(target) == 'off' or (now() - states[target].last_changed).seconds > 3)
-    {%- set target_entities.service = target_entities.service + [target] %}
-    {%- endif %}
-    {%- endfor %}
-    {%- endif %}
-    {{ target_entities.service }}
+    targets_service: >-
+      {%- set target_entities = namespace(service=[]) %}
+      {%- if not not trigger.event.data.service_data %}
+      {%- set service_targets = trigger.event.data.service_data.entity_id %}
+      {%- set service_targets = [service_targets] if service_targets is string else service_targets %}
+      {%- for target in service_targets %}
+      {%- if target is in targets and (states(target) == 'off' or (now() - states[target].last_changed).seconds > 3)
+      {%- set target_entities.service = target_entities.service + [target] %}
+      {%- endif %}
+      {%- endfor %}
+      {%- endif %}
+      {{ target_entities.service }}
 - choose:
   - conditions:
     - condition: or
@@ -213,7 +213,7 @@ action:
           data_template:
             brightness: "{{ light_setting_current_brightness }}"
           target:
-            entity_id: "{{ trigger.event.data.service_data.entity_id }}"
+            entity_id: "{{ targets_service }}"
     - choose:
       - conditions:
         - "{{ not 'color_temp' is in trigger.event.data.service_data }}"

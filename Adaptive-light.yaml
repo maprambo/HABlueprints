@@ -67,8 +67,7 @@ blueprint:
           mode: slider
           step: 0.01
       default: 1.05
-mode: queued
-max: 10
+mode: single
 trigger:
   - id: "time_pattern"
     platform: time_pattern
@@ -89,18 +88,6 @@ variables:
   brightness_factor: !input brightness_factor
   sunrise: !input sunrise_time
   sunset: !input sunset_time
-conditions:
-  - condition: or
-    conditions:
-    - "{{ trigger.id != 'light_turned_on' }}"
-    - condition: and
-      conditions:
-      - "{{ trigger.event.data.service_data.entity_id is in targets }}"
-      - "{{ states(trigger.event.data.service_data.entity_id) == 'off' or (now() - states[trigger.event.data.service_data.entity_id].last_changed).seconds > 3 }}"
-      - "{{ not 'white' is in trigger.event.data.service_data }}"
-      - "{{ not 'profile' is in trigger.event.data.service_data }}"
-      - "{{ not 'flash' is in trigger.event.data.service_data }}"
-      - "{{ not 'effect' is in trigger.event.data.service_data }}"
 action:
 - variables:
     interval_sec: 60
@@ -141,7 +128,12 @@ action:
       {%- set target_entities = namespace(brightness=[]) %}
       {%- for target in targets %}
       {%- if states(target) == 'on' %}
-      {%- if not not state_attr(target, 'brightness') and state_attr(target, 'color_mode') == 'color_temp' and state_attr(target, 'brightness') > light_setting_old_brightness - 1 and state_attr(target, 'brightness') < light_setting_current_brightness + 1 %}
+      {%- if not not state_attr(target, 'brightness') and state_attr(target, 'color_mode') == 'color_temp'
+        and (
+          (state_attr(target, 'brightness') > light_setting_old_brightness - 1 and state_attr(target, 'brightness') < light_setting_current_brightness + 1) 
+        or
+          (state_attr(target, 'brightness') < light_setting_old_brightness + 1 and state_attr(target, 'brightness') > light_setting_current_brightness - 1) 
+      ) %}
       {%- set target_entities.brightness = target_entities.brightness + [target] %}
       {%- endif %}
       {%- endif %}
@@ -154,7 +146,12 @@ action:
       {%- set target_entities = namespace(temperature=[]) %}
       {%- for target in targets %}
       {%- if states(target) == 'on' %}
-      {%- if not not state_attr(target, 'color_temp') and state_attr(target, 'color_mode') == 'color_temp' and state_attr(target, 'color_temp') > light_setting_old_temperature - 1 and state_attr(target, 'color_temp') < light_setting_current_temperature + 1 %}
+      {%- if not not state_attr(target, 'color_temp') and state_attr(target, 'color_mode') == 'color_temp'
+        and (
+          (state_attr(target, 'color_temp') > light_setting_old_temperature - 1 and state_attr(target, 'color_temp') < light_setting_current_temperature + 1)
+        or
+          (state_attr(target, 'color_temp') < light_setting_old_temperature + 1 and state_attr(target, 'color_temp') > light_setting_current_temperature - 1)
+      ) %}
       {%- set target_entities.temperature = target_entities.temperature + [target] %}
       {%- endif %}
       {%- endif %}
@@ -224,6 +221,7 @@ action:
             color_temp: "{{ light_setting_current_temperature }}"
           target:
             entity_id: "{{ trigger.event.data.service_data.entity_id }}"
+    - delay: 1
   - conditions: "{{ trigger.idx == 'Test' }}"
     sequence:
     - repeat:

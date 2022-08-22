@@ -81,6 +81,7 @@ trigger:
       service: turn_on
 variables:
   lights: !input lights
+  targets: "{{ [lights] if lights is string else lights }}"
   brightness_midday: !input brightness_midday
   brightness_midnight: !input brightness_midnight
   temperature_midday: !input temperature_midday
@@ -88,6 +89,18 @@ variables:
   brightness_factor: !input brightness_factor
   sunrise: !input sunrise_time
   sunset: !input sunset_time
+conditions:
+  - condition: or
+    conditions:
+    - "{{ trigger.id != 'light_turned_on' }}"
+    - condition: and
+      conditions:
+      - "{{ trigger.event.data.service_data.entity_id is in targets }}"
+      - "{{ states(trigger.event.data.service_data.entity_id) == 'off' or (now() - states[trigger.event.data.service_data.entity_id].last_changed).seconds > 3 }}"
+      - "{{ not 'white' is in trigger.event.data.service_data }}"
+      - "{{ not 'profile' is in trigger.event.data.service_data }}"
+      - "{{ not 'flash' is in trigger.event.data.service_data }}"
+      - "{{ not 'effect' is in trigger.event.data.service_data }}"
 action:
 - variables:
     interval_sec: 60
@@ -123,8 +136,6 @@ action:
     light_setting_old_brightness: "{{ (params_y_old_product * (brightness_midday - brightness_midnight) + brightness_midnight) / 100 * 255 | int }}"
 - variables:
     light_setting_old_temperature: "{{ (temperature_midnight - params_y_old * (temperature_midnight - temperature_midday)) | int }}"
-- variables:
-    targets: "{{ [lights] if lights is string else lights }}"
 - variables:
     targets_brightness: >-
       {%- set target_entities = namespace(brightness=[]) %}

@@ -176,8 +176,13 @@ action:
       {%- if not not trigger and not not trigger.event and not not trigger.event.data and not not trigger.event.data.service_data %}
         {%- set service_targets = trigger.event.data.service_data.entity_id %}
         {%- set service_targets = [service_targets] if service_targets is string else service_targets %}
+        {%- set require_off = not ('white' is in trigger.event.data.service_data
+                                or 'brightness' is in trigger.event.data.service_data
+                                or 'brightness_pct' is in trigger.event.data.service_data
+                                or 'brightness_step' is in trigger.event.data.service_data
+                                or 'brightness_step_pct' is in trigger.event.data.service_data) %}
         {%- for target in service_targets %}
-          {%- if target is in targets and (states(target) == 'off' or (now() - states[target].last_changed).seconds > 3) %}
+          {%- if target is in targets and (require_off == false or states(target) == 'off') %}
             {%- set target_entities.service = target_entities.service + [target] %}
           {%- endif %}
         {%- endfor %}
@@ -207,14 +212,9 @@ action:
         entity_id: "{{ targets_temperature }}"
   - conditions:
     - "{{ trigger.id == 'light_turned_on' }}"
-    - "{{ not 'white' is in trigger.event.data.service_data }}"
     - "{{ not 'profile' is in trigger.event.data.service_data }}"
     - "{{ not 'flash' is in trigger.event.data.service_data }}"
     - "{{ not 'effect' is in trigger.event.data.service_data }}"
-    - "{{ not 'brightness' is in trigger.event.data.service_data }}"
-    - "{{ not 'brightness_pct' is in trigger.event.data.service_data }}"
-    - "{{ not 'brightness_step' is in trigger.event.data.service_data }}"
-    - "{{ not 'brightness_step_pct' is in trigger.event.data.service_data }}"
     - "{{ not 'color_temp' is in trigger.event.data.service_data }}"
     - "{{ not 'rgb_color' is in trigger.event.data.service_data }}"
     - "{{ not 'rgbw_color' is in trigger.event.data.service_data }}"

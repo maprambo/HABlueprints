@@ -176,13 +176,12 @@ action:
       {%- if not not trigger and not not trigger.event and not not trigger.event.data and not not trigger.event.data.service_data %}
         {%- set service_targets = trigger.event.data.service_data.entity_id %}
         {%- set service_targets = [service_targets] if service_targets is string else service_targets %}
-        {%- set require_off = ('white' is in trigger.event.data.service_data
-                            or 'brightness' is in trigger.event.data.service_data
-                            or 'brightness_pct' is in trigger.event.data.service_data
-                            or 'brightness_step' is in trigger.event.data.service_data
-                            or 'brightness_step_pct' is in trigger.event.data.service_data) %}
         {%- for target in service_targets %}
-          {%- if target is in targets and (require_off == false or states(target) == 'off') %}
+          {%- if target is in targets and ((not ('white' is in trigger.event.data.service_data
+                                              or 'brightness' is in trigger.event.data.service_data
+                                              or 'brightness_pct' is in trigger.event.data.service_data
+                                              or 'brightness_step' is in trigger.event.data.service_data
+                                              or 'brightness_step_pct' is in trigger.event.data.service_data)) or states(target) == 'off') %}
             {%- set target_entities.service = target_entities.service + [target] %}
           {%- endif %}
         {%- endfor %}

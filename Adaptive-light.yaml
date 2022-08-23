@@ -240,13 +240,26 @@ action:
             color_temp: "{{ light_setting_current_temperature }}"
           target:
             entity_id: "{{ targets_service }}"
-      default:
-      - service: light.turn_on
-        data: trigger.event.data.service_data
-        data_template:
-          color_temp: "{{ light_setting_current_temperature }}"
-        target:
-          entity_id: "{{ targets_service }}"
+      - conditions: "{{ 'brightness' is in trigger.event.data.service_data }}"
+        sequence:
+        - service: light.turn_on
+          data:
+            transition: "{{ trigger.event.data.service_data.transition if not not trigger.event.data.service_data.transition else 1 }}"
+          data_template:
+            color_temp: "{{ light_setting_current_temperature }}"
+            brightness: "{{ trigger.event.data.service_data.brightness }}"
+          target:
+            entity_id: "{{ targets_service }}"
+      - conditions: "{{ 'brightness_pct' is in trigger.event.data.service_data }}"
+        sequence:
+        - service: light.turn_on
+          data:
+            transition: "{{ trigger.event.data.service_data.transition if not not trigger.event.data.service_data.transition else 1 }}"
+          data_template:
+            color_temp: "{{ light_setting_current_temperature }}"
+            brightness_pct: "{{ trigger.event.data.service_data.brightness_pct }}"
+          target:
+            entity_id: "{{ targets_service }}"
     - delay: 1
   - conditions: "{{ not trigger.idx }}"
     sequence:

@@ -143,7 +143,7 @@ action:
       {%- set target_entities = namespace(brightness=[]) %}
       {%- for target in targets %}
       {%- if states(target) == 'on' %}
-      {%- if not not state_attr(target, 'brightness') and state_attr(target, 'color_mode') == 'color_temp'
+      {%- if not not state_attr(target, 'brightness') and (state_attr(target, 'color_mode') == 'color_temp' or state_attr(target, 'color_mode') == 'brightness')
         and (
           (state_attr(target, 'brightness') > light_setting_old_brightness - 5 and state_attr(target, 'brightness') < light_setting_current_brightness + 5) 
         or

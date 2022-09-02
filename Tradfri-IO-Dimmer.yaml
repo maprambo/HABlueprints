@@ -36,6 +36,38 @@ blueprint:
       default: false
       selector:
         boolean: {}
+    brightness_minimum:
+      name: "Minimum brightness"
+      description: "Minimum brightness supported by light"
+      selector:
+        number:
+          min: 0
+          max: 100
+          unit_of_measurement: "%"
+          mode: slider
+          step: 1
+      default: 0
+    brightness_maximum:
+      name: "Maximum brightness"
+      description: "Minimum brightness supported by light"
+      selector:
+        number:
+          min: 0
+          max: 100
+          unit_of_measurement: "%"
+          mode: slider
+          step: 1
+      default: 100
+    brightness_step:
+      name: "Brightness step"
+      selector:
+        number:
+          min: 0
+          max: 50
+          unit_of_measurement: "%"
+          mode: slider
+          step: 1
+      default: 10
 mode: restart
 trigger:
 - platform: event
@@ -48,6 +80,10 @@ action:
     cluster_id: "{{ trigger.event.data.cluster_id }}"
     endpoint_id: "{{ trigger.event.data.endpoint_id }}"
     force_default: !input 'force_default'
+    brightness_minimum: !input 'brightness_minimum'
+    brightness_maximum: !input 'brightness_maximum'
+    brightness_step: !input 'brightness_step'
+    main_light: !input 'main_light'
 - choose:
   - conditions:
     - "{{ command == 'on' }}"
@@ -87,12 +123,13 @@ action:
         while:
         - condition: template
           value_template: "{{ repeat.index < 10 }}"
+        - "{{ state_attr(main_light, 'brightness') + brightness_step <= brightness_maximum }}"
         sequence:
         - service: light.turn_on
           target: !input 'light'
           data:
             transition: 1
-            brightness_step_pct: 10
+            brightness_step_pct: !input brightness_step
         - delay: 1
   - conditions:
     - "{{ command == 'move' }}"
@@ -103,12 +140,13 @@ action:
         while:
         - condition: template
           value_template: "{{ repeat.index < 10 }}"
+        - "{{ state_attr(main_light, 'brightness') - brightness_step >= brightness_minimum }}"
         sequence:
         - service: light.turn_on
           target: !input 'light'
           data:
             transition: 1
-            brightness_step_pct: -10
+            brightness_step_pct: "{{ (-1) * brigthness_step }}"
         - delay: 1
   - conditions:
     - "{{ command == 'stop' }}"

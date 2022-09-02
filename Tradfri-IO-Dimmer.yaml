@@ -123,13 +123,22 @@ action:
         while:
         - condition: template
           value_template: "{{ repeat.index < 10 }}"
-        - "{{ (state_attr(main_light, 'brightness') + (brightness_step * 255 / 100)) <= (brightness_maximum * 255 / 100) }}"
         sequence:
-        - service: light.turn_on
-          target: !input 'light'
-          data:
-            transition: 1
-            brightness_step_pct: !input brightness_step
+        - choose:
+          - conditions:
+            - "{{ (state_attr(main_light, 'brightness') + (brightness_step * 255 / 100)) <= (brightness_maximum * 255 / 100) }}"
+            sequence:
+            - service: light.turn_on
+              target: !input 'light'
+              data:
+                transition: 1
+                brightness_step_pct: !input brightness_step
+          default:
+          - service: light.turn_on
+            target: !input 'light'
+            data:
+              transition: 1
+              brightness_pct: !input brightness_maximum
         - delay: 1
   - conditions:
     - "{{ command == 'move' }}"
@@ -140,13 +149,22 @@ action:
         while:
         - condition: template
           value_template: "{{ repeat.index < 10 }}"
-        - "{{ (state_attr(main_light, 'brightness') - (brightness_step * 255 / 100)) >= (brightness_minimum * 255 / 100) }}"
         sequence:
-        - service: light.turn_on
-          target: !input 'light'
-          data:
-            transition: 1
-            brightness_step_pct: "{{ (-1) * brightness_step }}"
+        - choose:
+          - conditions:
+            - "{{ (state_attr(main_light, 'brightness') - (brightness_step * 255 / 100)) >= (brightness_minimum * 255 / 100) }}"
+            sequence:
+            - service: light.turn_on
+              target: !input 'light'
+              data:
+                transition: 1
+                brightness_step_pct: "{{ (-1) * brightness_step }}"
+          default:
+          - service: light.turn_on
+            target: !input 'light'
+            data:
+              transition: 1
+              brightness_pct: !input brightness_minimum
         - delay: 1
   - conditions:
     - "{{ command == 'stop' }}"

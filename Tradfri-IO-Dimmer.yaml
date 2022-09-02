@@ -123,7 +123,7 @@ action:
         while:
         - condition: template
           value_template: "{{ repeat.index < 10 }}"
-        - "{{ state_attr(main_light, 'brightness') + brightness_step <= brightness_maximum }}"
+        - "{{ state_attr(main_light, 'brightness') + brightness_step <= brightness_maximum * 255 }}"
         sequence:
         - service: light.turn_on
           target: !input 'light'
@@ -140,7 +140,7 @@ action:
         while:
         - condition: template
           value_template: "{{ repeat.index < 10 }}"
-        - "{{ state_attr(main_light, 'brightness') - brightness_step >= brightness_minimum }}"
+        - "{{ state_attr(main_light, 'brightness') - brightness_step >= brightness_minimum * 255 }}"
         sequence:
         - service: light.turn_on
           target: !input 'light'

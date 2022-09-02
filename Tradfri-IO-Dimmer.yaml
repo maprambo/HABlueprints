@@ -146,7 +146,7 @@ action:
           target: !input 'light'
           data:
             transition: 1
-            brightness_step_pct: "{{ (-1) * brigthness_step }}"
+            brightness_step_pct: "{{ (-1) * brightness_step }}"
         - delay: 1
   - conditions:
     - "{{ command == 'stop' }}"

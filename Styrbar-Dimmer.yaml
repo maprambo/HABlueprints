@@ -247,10 +247,16 @@ action:
                   transition: 1
 # - HS-Modus: langwelliger
             - conditions:
-              - condition: state
-                entity_id: !input main_light
-                attribute: color_mode
-                state: hs
+              - condition: or
+                conditions:
+                - condition: state
+                  entity_id: !input main_light
+                  attribute: color_mode
+                  state: hs
+                - condition: state
+                  entity_id: !input main_light
+                  attribute: color_mode
+                  state: xy
               - " {{ state_attr(main_light, 'hs_color')[0] - 18 >= 0 }} "
               sequence:
               - service: light.turn_on
@@ -262,10 +268,16 @@ action:
                   transition: 1
 # - HS-Modus -> Weißton-Modus
             - conditions:
-              - condition: state
-                entity_id: !input main_light
-                attribute: color_mode
-                state: hs
+              - condition: or
+                conditions:
+                - condition: state
+                  entity_id: !input main_light
+                  attribute: color_mode
+                  state: hs
+                - condition: state
+                  entity_id: !input main_light
+                  attribute: color_mode
+                  state: xy
               - " {{ state_attr(main_light, 'hs_color')[0] - 18 < 0 }} "
               sequence:
               - service: light.turn_on
@@ -314,10 +326,16 @@ action:
                   transition: 1
 # - HS-Modus: kurzwelliger
             - conditions:
-              - condition: state
-                entity_id: !input main_light
-                attribute: color_mode
-                state: hs
+              - condition: or
+                conditions:
+                - condition: state
+                  entity_id: !input main_light
+                  attribute: color_mode
+                  state: hs
+                - condition: state
+                  entity_id: !input main_light
+                  attribute: color_mode
+                  state: xy
               - " {{ state_attr(main_light, 'hs_color')[0] + 18 <= 360 }} "
               sequence:
               - service: light.turn_on
@@ -329,10 +347,16 @@ action:
                   transition: 1
 # - HS-Modus -> Weißton-Modus
             - conditions:
-              - condition: state
-                entity_id: !input main_light
-                attribute: color_mode
-                state: hs
+              - condition: or
+                conditions:
+                - condition: state
+                  entity_id: !input main_light
+                  attribute: color_mode
+                  state: hs
+                - condition: state
+                  entity_id: !input main_light
+                  attribute: color_mode
+                  state: xy
               - " {{ state_attr(main_light, 'hs_color')[0] + 18 > 360 }} "
               sequence:
               - service: light.turn_on

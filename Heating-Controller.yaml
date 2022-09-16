@@ -125,6 +125,7 @@ action:
           entity_id: !input window_contact
           state: "on"
           match: "any"
+      sequence:
       - choose:
         - conditions:
           - condition: state

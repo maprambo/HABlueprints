@@ -7,9 +7,8 @@ blueprint:
       name: "Thermostats"
       selector:
         device:
-          integration: climate
-          manufacturer: Eurotronic
-          model: SPZB0001
+          manufacturer: "Eurotronic"
+          model: "SPZB0001"
           multiple: true
     comfort_temp_input:
       name: "Comfort temperature"

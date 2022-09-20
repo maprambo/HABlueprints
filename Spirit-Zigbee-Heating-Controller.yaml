@@ -1,0 +1,223 @@
+blueprint:
+  name: "Spirit ZigBee Heating controller"
+  description: "Sets the temperature to one or more heaters using input number entitites for temperatures, a dropdown selector, person entities and window contacts"
+  domain: automation
+  input:
+    heater:
+      name: "Thermostats"
+      selector:
+        device:
+          integration: climate
+          manufacturer: Eurotronic
+          model: SPZB0001
+          multiple: true
+    comfort_temp_input:
+      name: "Comfort temperature"
+      description: "Input number entity for the day / normal temperature"
+      selector:
+        entity:
+          domain: input_number
+    eco_temp_input:
+      name: "Eco temperature"
+      description: "Input number entity for the eco (i.e. night) temperature"
+      selector:
+        entity:
+          domain: input_number
+    min_temp_input:
+      name: "Minimum temperature"
+      description: "Input number entity for the away temperature. This is also used as the absolute minimum, also the user or other delta cannot override this."
+      selector:
+        entity:
+          domain: input_number
+    program_dropdown:
+      name: "Program dropdown"
+      description: "Input select entity for the desired program. Values of this dropdown can be be 'comfort'/'day', 'eco'/''night', 'minimum'/'away', 'off'."
+      selector:
+        entity:
+          domain: input_select
+    window_contact:
+      name: "Window contacts"
+      selector:
+        entity:
+          domain: binary_sensor
+          multiple: true
+      default: []
+    people:
+      name: "People"
+      description: "if not all listed people have the status 'home', the heater turns off"
+      selector:
+        entity:
+          domain: person
+          multiple: true
+    sun_delta:
+      name: "Temperature delta"
+      description: "A temperature delta input number e.g. caluclated respecting the weather report"
+      selector:
+        entity:
+          domain: input_number
+      default: null
+    turn_display_input:
+      name: "Turn display"
+      description: "Turn the display of the thermostat by 180 Degrees"
+      selector:
+        boolean:
+      default: false
+    child_lock_input:
+      name: "Child lock"
+      description: "Activate the child lock so that the buttons on the thermostat are prevented from use"
+      selector:
+        boolean:
+      default: false
+mode: queued
+trigger:
+  - id: "comfort_temp_change"
+    platform: state
+    entity_id: !input comfort_temp_input
+  - id: "eco_temp_change"
+    platform: state
+    entity_id: !input eco_temp_input
+  - id: "min_temp_change"
+    platform: state
+    entity_id: !input min_temp_input
+  - id: "program_change"
+    platform: state
+    entity_id: !input program_dropdown
+    for: "00:00:03"
+  - id: "window_opens"
+    platform: state
+    entity_id: !input window_contact
+    from: "off"
+    to: "on"
+    for: "00:00:05"
+  - id: "window_closes"
+    platform: state
+    entity_id: !input window_contact
+    from: "on"
+    to: "off"
+    for: "00:00:05"
+  - id: "delta_change"
+    platform: state
+    entity_id: !input sun_delta
+  - id: "home_state"
+    platform: state
+    entity_id: !input people
+  - id: "time_pattern"
+    platform: time_pattern
+    minutes: "/5"
+variables:
+  sun_delta_input: !input sun_delta
+  comfort_temp_input: !input comfort_temp_input
+  eco_temp_input: !input eco_temp_input
+  min_temp_input: !input min_temp_input
+  sun_delta_temp: "{{ states(sun_delta_input) }}"
+  comfort_temp: "{{ states(comfort_temp_input) }}"
+  eco_temp: "{{ states(eco_temp_input) }}"
+  min_temp: "{{ states(min_temp_input) }}"
+  program_dropdown: !input program_dropdown
+  program: "{{ states(program_dropdown).lower() }}"
+  target_temp: >
+    {%- set temp = namespace(target=0) %}
+    {%- if program == 'day' or program == 'comfort' %}
+      {%- set temp.target = comfort_temp %}
+    {%- elif program == 'night' or program == 'eco' %}
+      {%- set temp.target = eco_temp %}
+    {%- elif program == 'away' or program == 'minimum' %}
+      {%- set temp.target = min_temp %}
+    {%- endif %}
+    {%- if sun_delta_input %}
+      {%- set temp.target = temp.target + sun_delta_temp %}
+      {%- if temp.target < min_temp %}
+        {%- set temp.target = min_temp %}
+      {%- endif %}
+    {%- endif %}
+    {{- temp.target }}
+  ieee_targets: >
+    {%- set targets = []) %}
+    {%- set targets = !input targets %}
+    {%- set targets = [targets] if targets is string else targets %}
+    {{ targets }}
+  turn_display: !input turn_dusplay_input
+  child_lock: !input child_lock_input
+  host_flags: >
+    {%- set host_flags = 0 %}
+    {%- if turn_display == true %}
+      {%- set host_flags = host_flags + 2 %}
+    {%- endif %}
+    {%- if turn_display == true %}
+      {%- set host_flags = host_flags + 2 %}
+    {%- endif %}
+action:
+  - choose:
+    - conditions:
+      - condition: or
+        conditions:
+        - "{{ program == 'off' }}"
+        - condition: state
+          entity_id: !input window_contact
+          state: "on"
+          match: "any"
+      sequence:
+      - choose:
+        - conditions:
+          - condition: state
+            entity_id: !input heater
+            state: "heat"
+          sequence:
+          - service: climate.set_temperature
+            target:
+              entity_id: !input heater
+            data_template:
+              temperature: 5.0
+          - delay:
+              milliseconds: 10000
+      - repeat:
+          for_each: "{{ ieee_targets }}"
+          sequence:
+          - service: zha.set_zigbee_cluster_attribute
+            data:
+              ieee: "{{ repeat.item }}"
+              attribute: 16392
+              endpoint_id: 1
+              cluster_id: 513
+              manufacturer: "4151"
+              value: "{{ host_flags + 16 }}"
+      - delay:
+          milliseconds: 10000
+    - conditions:
+      - condition: state
+        entity_id: !input window_contact
+        state: "off"
+      - "{{ program != 'off' }}"
+      sequence:
+      - repeat:
+          for_each: "{{ ieee_targets }}"
+          sequence:
+          - service: zha.set_zigbee_cluster_attribute
+            data:
+              ieee: "{{ repeat.item }}"
+              attribute: 16392
+              endpoint_id: 1
+              cluster_id: 513
+              manufacturer: "4151"
+              value: "{{ host_flags + 1 }}"
+      - delay:
+          milliseconds: 10000
+      - choose:
+        - conditions:
+          - condition: state
+            entity_id: !input people
+            state: "not_home"
+          sequence:
+          - service: climate.set_temperature
+            target:
+              entity_id: !input heater
+            data_template:
+              temperature: !input min_temp_input
+        default:
+        - service: climate.set_temperature
+          target:
+            device_id: !input heater
+          data_template:
+            temperature: '{{ target_temp }}'
+      - delay:
+          milliseconds: 10000

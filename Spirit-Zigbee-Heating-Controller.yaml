@@ -136,7 +136,7 @@ variables:
     {%- set targets = !input targets %}
     {%- set targets = [targets] if targets is string else targets %}
     {{ targets }}
-  turn_display: !input turn_dusplay_input
+  turn_display: !input turn_display_input
   child_lock: !input child_lock_input
   host_flags: >
     {%- set host_flags = 0 %}

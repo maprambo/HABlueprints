@@ -126,9 +126,11 @@ action:
           state: "on"
           match: "any"
       sequence:
-      - service: climate.turn_off
+      - service: climate.set_temperature
         target:
           entity_id: !input heater
+        data_template:
+          temperature: 5.0
       - delay:
           milliseconds: 10000
     - conditions:

@@ -160,7 +160,7 @@ action:
             target:
               entity_id: !input heater
             data_template:
-              temperature: !input away_temp_input
+              temperature: '{{ away_temp }}'
         default:
         - service: climate.set_temperature
           target:

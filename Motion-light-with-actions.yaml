@@ -22,6 +22,12 @@ blueprint:
       selector:
         entity:
           domain: binary_sensor
+    insect_light:
+      name: "Insect light"
+      description: "Turn down the brightness of the lights if a window opens in darkness "
+      selector:
+        boolean:
+      default: true
     window_contact:
       name: "Window contact(s)"
       description: "Optionally provided window sensors will dim the light or keep it turned off if a window is open to keep insects out"
@@ -134,6 +140,7 @@ variables:
     main_light: !input main_light
     target_lights: !input target_lights
     window_contact: !input window_contact
+    boolean_insect_light: !input insect_light
 action:
   - choose:
     - conditions:
@@ -334,6 +341,12 @@ action:
 # Dim light when window opens
     - conditions:
       - "{{ trigger.id == 'window_opens' }}"
+      - "{{ boolean_insect_light }}"
+      sequence:
+      - service: scene.create
+        data:
+          scene_id: "snaphot_{{ this.entity_id.split('.')[1] }}"
+          snapshot_entities: " {{ target_lights.entity_id }} "
       - condition: state
         entity_id: !input main_light
         state: "on"
@@ -344,11 +357,6 @@ action:
       - condition: state
         entity_id: !input darkness
         state: "on"
-      sequence:
-      - service: scene.create
-        data:
-          scene_id: "snaphot_{{ this.entity_id.split('.')[1] }}"
-          snapshot_entities: " {{ target_lights.entity_id }} "
       - service: light.turn_on
         data:
           brightness: 5

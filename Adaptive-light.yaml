@@ -113,6 +113,7 @@ action:
     params_y: "{{ 0.5 * cos(2*pi*(params_x - params_meridian)) + params_c + 0.5 }}"
     params_y_old: "{{ 0.5 * cos(2*pi*(params_x_old - params_meridian)) + params_c + 0.5 }}"
     targets: "{{ [lights] if lights is string else lights }}"
+    brightness_minimum: "{{ (brightness_minimum / 100 * 255) | int }}"
 - variables:
     params_y: "{{ params_y if params_y > 0 else 0 }}"
 - variables:

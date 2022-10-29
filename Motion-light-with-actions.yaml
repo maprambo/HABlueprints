@@ -161,6 +161,7 @@ action:
       - condition: or
         conditions:
         - "{{ not window_contact }}"
+        - "{{ not boolean_insect_light }}"
         - condition: state
           entity_id: !input window_contact
           state: "off"

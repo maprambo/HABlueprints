@@ -10,6 +10,7 @@ blueprint:
         entity:
           domain: binary_sensor
           device_class: motion
+      multiple: true
     automation_active:
       name: "Automation active (manual override)"
       description: "An input boolean to turn the motion sensoring on or off"
@@ -158,10 +159,11 @@ action:
           entity_id: !input motion_sensor
           state: "off"                            # Check presence int the last given minutes
           for: !input duration_turn_off_lights
+          match: all
       - condition: or
         conditions:
         - "{{ not window_contact }}"
-        - "{{ not boolean_insect_light }}"
+        - "{{ boolean_insect_light == false }}"
         - condition: state
           entity_id: !input window_contact
           state: "off"
@@ -224,6 +226,7 @@ action:
               entity_id: !input motion_sensor
               state: "off"                            # Check presence int the last given minutes
               for: !input duration_turn_off_lights
+              match: all
           - condition: state
             entity_id: !input automation_active
             state: "on"
@@ -244,6 +247,7 @@ action:
           entity_id: !input motion_sensor
           state: "off"                            # Check presence int the last given minutes
           for: !input duration_turn_off_lights
+          match: all
         - condition: and
           conditions:
           - "{{ not not window_contact }}"
@@ -269,6 +273,7 @@ action:
       - condition: state
         entity_id: !input motion_sensor
         state: "on"
+        match: any
       sequence:
       - service: input_boolean.turn_on
         target:
@@ -285,6 +290,7 @@ action:
           entity_id: !input motion_sensor
           state: "off"                            # Check presence int the last given minutes
           for: !input duration_turn_off_lights
+          match: all
         - condition: and
           conditions:
           - "{{ not not window_contact }}"
@@ -307,6 +313,7 @@ action:
           entity_id: !input motion_sensor
           state: "off"                            # Check presence int the last given minutes
           for: !input duration_turn_off_lights
+          match: all
       - condition: state                          # When it's dark, but not triggered by darkness
         entity_id: !input darkness
         state: "on"
@@ -321,6 +328,7 @@ action:
       - condition: state
         entity_id: !input motion_sensor
         state: "off"
+        match: all
       sequence:
       - service: input_boolean.turn_off
         target:

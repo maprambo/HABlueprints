@@ -10,7 +10,7 @@ blueprint:
         entity:
           domain: binary_sensor
           device_class: motion
-      multiple: true
+          multiple: true
     automation_active:
       name: "Automation active (manual override)"
       description: "An input boolean to turn the motion sensoring on or off"

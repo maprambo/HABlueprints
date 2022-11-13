@@ -91,6 +91,12 @@ trigger:
     event_data:
       domain: light
       service: turn_on
+  - id: "light_turned_on"
+    platform: event
+    event_type: call_service
+    event_data:
+      domain: light
+      service: toggle
 variables:
   lights: !input lights
   brightness_midday: !input brightness_midday

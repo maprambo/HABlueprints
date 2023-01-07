@@ -108,7 +108,7 @@ variables:
   sunset: !input sunset_time
   brightness_minimum: !input brightness_minimum
 action:
-- condition: "{{ trigger.id == 'time_pattern' or this.attributes.current <= 5 }}"
+- condition: "{{ trigger.id == 'time_pattern' or this.attributes.current <= 15 }}"
 - variables:
     interval_sec: 60
     params_day_length: "{{ (today_at(sunset) - today_at(sunrise)).seconds / (24*60*60) }}"

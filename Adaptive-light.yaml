@@ -80,7 +80,7 @@ blueprint:
 mode: parallel
 max_exceeded: silent
 trace:
-  stored_traces: 10
+  stored_traces: 15
 trigger:
   - id: "time_pattern"
     platform: time_pattern
@@ -108,6 +108,7 @@ variables:
   sunset: !input sunset_time
   brightness_minimum: !input brightness_minimum
 action:
+- condition: "{{ trigger.id == 'time_pattern' || this.current <= 1 }}"
 - variables:
     interval_sec: 60
     params_day_length: "{{ (today_at(sunset) - today_at(sunrise)).seconds / (24*60*60) }}"
@@ -195,7 +196,6 @@ action:
       {%- endif %}
       {{ target_entities.service }}
 - choose:
-  - condition: "{{ trigger.id == 'time_pattern' || this.current <= 1 }}"
   - conditions:
     - condition: or
       conditions:

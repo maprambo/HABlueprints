@@ -210,13 +210,17 @@ action:
         brightness: "{{ light_setting_current_brightness }}"
       target:
         entity_id: "{{ targets_brightness }}"
-    - service: light.turn_on
-      data:
-        transition: 0
-      data_template:
-        color_temp: "{{ light_setting_current_temperature }}"
-      target:
-        entity_id: "{{ targets_temperature }}"
+    - repeat:
+        count: 2
+        sequence:
+        - service: light.turn_on
+          data:
+            transition: 1
+          data_template:
+            color_temp: "{{ light_setting_current_temperature }}"
+          target:
+            entity_id: !input lights
+        - delay: 1
   - conditions:
     - "{{ trigger.id == 'light_turned_on' }}"
     - "{{ not 'profile' is in trigger.event.data.service_data }}"

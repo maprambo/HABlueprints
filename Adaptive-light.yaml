@@ -77,7 +77,7 @@ blueprint:
           mode: slider
           step: 1
       default: 0
-mode: single
+mode: parallel
 max_exceeded: silent
 trace:
   stored_traces: 10
@@ -188,13 +188,14 @@ action:
                                               or 'brightness' is in trigger.event.data.service_data
                                               or 'brightness_pct' is in trigger.event.data.service_data
                                               or 'brightness_step' is in trigger.event.data.service_data
-                                              or 'brightness_step_pct' is in trigger.event.data.service_data)) or states(target) == 'off') %}
+                                              or 'brightness_step_pct' is in trigger.event.data.service_data)) and states(target) == 'off') %}
             {%- set target_entities.service = target_entities.service + [target] %}
           {%- endif %}
         {%- endfor %}
       {%- endif %}
       {{ target_entities.service }}
 - choose:
+  - condition: "{{ trigger.id == 'time_pattern' || this.current <= 1 }}"
   - conditions:
     - condition: or
       conditions:

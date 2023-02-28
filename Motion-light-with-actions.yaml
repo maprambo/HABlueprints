@@ -79,60 +79,49 @@ trigger:
   - id: "motion_detected"
     platform: state
     entity_id: !input motion_sensor
-    from: "off"
     to: "on"
   - id: "no_motion_detected"
     platform: state
     entity_id: !input motion_sensor
-    from: "on"
     to: "off"
     for: !input duration_turn_off_lights
   - id: "darkness_on"
     platform: state
     entity_id: !input darkness
-    from: "off"
     to: "on"
   - id: "darkness_off"
     platform: state
     entity_id: !input darkness
-    from: "on"
     to: "off"
   - id: "light_turned_off"
     platform: state
     entity_id: !input main_light
-    from: "on"
     to: "off"
   - id: "light_turned_on"
     platform: state
     entity_id: !input main_light
-    from: "off"
     to: "on"
   - id: "automation_active_on"
     platform: state
     entity_id: !input automation_active
-    from: "off"
     to: "on"
   - id: "manual_override_reset_by_no_motion"
     platform: state
     entity_id: !input motion_sensor
-    from: "on"
     to: "off"
     for: !input duration_turn_on_automation_active
   - id: "manual_override_reset_by_no_darkness"
     platform: state
     entity_id: !input darkness
-    from: "on"
     to: "off"
     for: !input duration_turn_on_automation_active
   - id: "window_opens"
     platform: state
     entity_id: !input window_contact
-    from: "off"
     to: "on"
   - id: "window_closes"
     platform: state
     entity_id: !input window_contact
-    from: "on"
     to: "off"
 variables:
     boolean_turn_off_lights: !input boolean_turn_off_lights

@@ -270,10 +270,12 @@ action:
 # Turn on the automation if the light is turned on in presence (leave off if activated from another place)
     - conditions:
       - "{{ trigger.id == 'light_turned_on' }}"
-      - condition: state
-        entity_id: !input motion_sensor
-        state: "on"
-        match: any
+      - condition: not
+        - condition: state
+          entity_id: !input motion_sensor
+          state: "off"
+          for: !input duration_turn_off_lights
+          match: all
       sequence:
       - service: input_boolean.turn_on
         target:

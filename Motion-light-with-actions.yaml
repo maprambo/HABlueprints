@@ -139,6 +139,7 @@ action:
         conditions:
         - "{{ trigger.id == 'motion_detected' }}"
         - "{{ trigger.id == 'darkness_on' }}"     # Also turn on light when it gets dark meanwhile present
+        - "{{ not trigger.idx }}" # run for default- turn off if it should be turned off
       - condition: state
         entity_id: !input darkness
         state: "on"
@@ -220,13 +221,15 @@ action:
             entity_id: !input automation_active
             state: "on"
           sequence: !input sequence_turn_on_light
+  - choose:
     - conditions:
 # Turn off the light when it gets bright or the motion is not detected no more
       - condition: or
         conditions:
         - "{{ trigger.id == 'no_motion_detected' }}"
         - "{{ trigger.id == 'darkness_off' }}"
-        - "{{ trigger.id == 'automation_active_on' }}" # Turn off the light if automation is turned on                  
+        - "{{ trigger.id == 'automation_active_on' }}" # Turn off the light if automation is turned on
+        - "{{ not trigger.idx }}" # run for default- turn off if it should be turned off
       - condition: or
         conditions:
         - condition: state

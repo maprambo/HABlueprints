@@ -271,6 +271,10 @@ action:
     - conditions:
       - "{{ trigger.id == 'light_turned_on' }}"
       - condition: not
+<<<<<<< HEAD
+=======
+        conditions:
+>>>>>>> 730b918 (Fix auto control when darkness turns on w/o presency)
         - condition: state
           entity_id: !input motion_sensor
           state: "off"

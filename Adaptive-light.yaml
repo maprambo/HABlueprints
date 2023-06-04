@@ -190,8 +190,8 @@ action:
                                               or 'brightness_pct' is in trigger.event.data.service_data
                                               or 'brightness_step' is in trigger.event.data.service_data
                                               or 'brightness_step_pct' is in trigger.event.data.service_data))
-                                      and (states(target) == 'off'
-                                           or (now() - states[target].last_changed).seconds <= 1 ) %}
+                                      and (states(target)) == 'on' %}
+                                      {#     or (now() - states[target].last_changed).seconds <= 1 ) #}
             {%- set target_entities.service = target_entities.service + [target] %}
           {%- endif %}
         {%- endfor %}

@@ -80,11 +80,11 @@ blueprint:
 mode: parallel
 max_exceeded: silent
 trace:
-  stored_traces: 15
+  stored_traces: 250
 trigger:
   - id: "time_pattern"
     platform: time_pattern
-    minutes: "/1"
+    minutes: "/3"
   - id: "light_turned_on"
     platform: event
     event_type: call_service
@@ -110,7 +110,7 @@ variables:
 action:
 - condition: "{{ trigger.id == 'time_pattern' or this.attributes.current <= 15 }}"
 - variables:
-    interval_sec: 60
+    interval_sec: 180
     params_day_length: "{{ (today_at(sunset) - today_at(sunrise)).seconds / (24*60*60) }}"
     params_x_sunrise: "{{ (today_at(sunrise) - today_at('00:00:00')).seconds / (24*60*60) }}"
     params_meridian: "{{ params_x_sunrise + (params_day_length / 2) }}"
@@ -189,10 +189,10 @@ action:
                                               or 'brightness' is in trigger.event.data.service_data
                                               or 'brightness_pct' is in trigger.event.data.service_data
                                               or 'brightness_step' is in trigger.event.data.service_data
-                                              or 'brightness_step_pct' is in trigger.event.data.service_data))
-                                      and (states(target)) == 'on' %}
-                                      {#     or (now() - states[target].last_changed).seconds <= 1 ) #}
-            {%- set target_entities.service = target_entities.service + [target] %}
+                                              or 'brightness_step_pct' is in trigger.event.data.service_data)) %}
+            {%- if (not trigger.event.data.service == 'toggle') or states(target) == 'off' %}
+                {%- set target_entities.service = target_entities.service + [target] %}
+            {%- endif %}
           {%- endif %}
         {%- endfor %}
       {%- endif %}
@@ -235,7 +235,7 @@ action:
     - "{{ not 'color_name' is in trigger.event.data.service_data }}"
     - "{{ not 'hs_color' is in trigger.event.data.service_data }}"
     - "{{ not 'xy_color' is in trigger.event.data.service_data }}"
-    - "{{ not 'kelvin' is in trigger.event.data.service_data }}"
+    - "{{ not 'color_temp_kelvin' is in trigger.event.data.service_data }}"
     - "{{ not 'rgb_color' is in trigger.event.data.service_data }}"
     sequence:
     - choose:
